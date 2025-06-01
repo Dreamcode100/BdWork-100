@@ -24,6 +24,9 @@
       <a href="admin-tasks.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
         <i class="fas fa-clipboard-list"></i><span>Task Manage</span>
       </a>
+      <a href="pro-settings.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-clipboard-list"></i><span>Pro Account Manage</span>
+      </a>
       <a href="#" class="flex items-center space-x-3 bg-blue-700 p-2 rounded transition">
         <i class="fas fa-users"></i><span>Users</span>
       </a>
@@ -77,28 +80,6 @@
           </table>
         </div>
       </div>
-
-      <!-- Pro Account Section -->
-      <div class="bg-white shadow rounded p-4">
-        <h2 class="text-lg font-semibold text-blue-700 mb-4">Pro Account Settings</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-gray-700 mb-1" for="proActivationCost">Activation Cost (৳)</label>
-            <input id="proActivationCost" type="number" min="0" step="0.01" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-          </div>
-          <div>
-            <label class="block text-gray-700 mb-1" for="proDailyBonus">Daily Bonus (৳)</label>
-            <input id="proDailyBonus" type="number" min="0" step="0.01" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-          </div>
-          <div>
-            <label class="block text-gray-700 mb-1" for="proValidity">Validity (days)</label>
-            <input id="proValidity" type="number" min="1" step="1" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-          </div>
-        </div>
-        <div class="mt-4 text-right">
-          <button id="updateProSettings" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition">Update</button>
-        </div>
-      </div>
     </main>
   </div>
 
@@ -115,9 +96,7 @@
       collection,
       getDocs,
       doc,
-      updateDoc,
-      setDoc,
-      getDoc
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -138,14 +117,6 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const totalUsersCountElem = document.getElementById("totalUsersCount");
 
-    // Pro Account Inputs
-    const proActivationCostInput = document.getElementById("proActivationCost");
-    const proDailyBonusInput = document.getElementById("proDailyBonus");
-    const proValidityInput = document.getElementById("proValidity");
-    const updateProSettingsBtn = document.getElementById("updateProSettings");
-
-    const proSettingsDocRef = doc(db, "settings", "proAccount");
-
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
       window.location.href = "login.html";
@@ -157,7 +128,6 @@
       } else {
         loadTotalUsersCount();
         loadUsers();
-        loadProSettings();
       }
     });
 
@@ -236,49 +206,7 @@
       }
     }
 
-    // Load Pro Account Settings from Firestore to inputs
-    async function loadProSettings() {
-      try {
-        const docSnap = await getDoc(proSettingsDocRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          proActivationCostInput.value = data.activationCost ?? "";
-          proDailyBonusInput.value = data.dailyBonus ?? "";
-          proValidityInput.value = data.validity ?? "";
-        }
-      } catch (error) {
-        console.error("Error loading Pro Account Settings:", error);
-      }
-    }
-
-    updateProSettingsBtn.addEventListener("click", async () => {
-      const activationCost = parseFloat(proActivationCostInput.value);
-      const dailyBonus = parseFloat(proDailyBonusInput.value);
-      const validity = parseInt(proValidityInput.value);
-
-      if (
-        isNaN(activationCost) || activationCost < 0 ||
-        isNaN(dailyBonus) || dailyBonus < 0 ||
-        isNaN(validity) || validity < 1
-      ) {
-        alert("Please enter valid values for all fields.");
-        return;
-      }
-
-      try {
-        await setDoc(proSettingsDocRef, {
-          activationCost,
-          dailyBonus,
-          validity
-        });
-        alert("Pro Account Settings updated successfully!");
-      } catch (error) {
-        alert("Failed to update settings.");
-        console.error(error);
-      }
-    });
-
-    // Sidebar toggle logic for mobile
+    // Sidebar toggle
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     const openSidebarBtn = document.getElementById("openSidebar");
