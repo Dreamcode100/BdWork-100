@@ -39,6 +39,194 @@
           </button>
         </div>
       </div>
+
+      ChatGPT
+You said:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-10">👋 Welcome to Your Dashboard</h1>
+
+    <!-- User Info Section -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p class="text-sm text-gray-500 mb-1">Email</p>
+        <p id="userEmail" class="text-lg sm:text-xl font-semibold text-gray-800 break-all">Loading...</p>
+
+        <p class="text-sm text-gray-500 mt-6 mb-1">Balance</p>
+        <p id="userBalance" class="text-lg sm:text-xl font-bold text-green-600">৳0</p>
+      </div>
+
+      <!-- Account Status Section -->
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center text-center">
+        <p id="accountStatus" class="text-lg sm:text-xl font-semibold text-gray-700">🔆</p>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p class="text-sm text-gray-500 mb-1">Total Refers</p>
+        <p id="totalRefers" class="text-lg sm:text-xl font-semibold text-gray-800">0</p>
+
+        <p class="text-sm text-gray-500 mt-6 mb-2">Your Refer Code</p>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <input id="userReferCode" readonly class="text-base sm:text-lg font-mono font-semibold text-blue-800 bg-blue-50 px-3 py-2 rounded w-full border border-blue-200" />
+          <button onclick="copyReferCode()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm transition w-full sm:w-auto">
+            Copy
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Task Section Button -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">🎯 Complete Tasks & Earn ৳5 Each</h2>
+      <a href="job.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+        Go to Tasks Page →
+      </a>
+    </section>
+
+    <!-- Pro Account Section Button -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <a href="pro-account.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+        Go to Pro Account Page →
+      </a>
+    </section>
+
+    <!-- Withdraw Redirect Section -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">💸 Withdraw Balance</h2>
+      <a href="withdraw.html" class="text-indigo-600 hover:underline text-center block">Go to Withdraw Page →</a>
+    </section>
+
+    <!-- Withdraw History Redirect -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">📜 Withdraw History</h2>
+      <a href="withdraw-history.html" class="text-blue-600 hover:underline text-center block">View Withdraw History →</a>
+    </section>
+
+    <!-- Logout -->
+    <div class="text-center mt-8">
+      <button onclick="logout()" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition text-lg">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+      </button>
+    </div>
+  </main>
+
+  <!-- JavaScript: Firebase + Dashboard Logic -->
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
+      authDomain: "bdwork-346d3.firebaseapp.com",
+      projectId: "bdwork-346d3",
+      storageBucket: "bdwork-346d3.appspot.com",
+      messagingSenderId: "900963179093",
+      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
+      measurementId: "G-FM1YJ8E5GK"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, query, where, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUserData = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "login.html";
+
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          currentUserData = { uid: user.uid, ...data };
+
+          document.getElementById("userEmail").innerText = data.email;
+          document.getElementById("userBalance").innerText = ৳${data.balance || 0};
+          document.getElementById("userReferCode").value = user.uid;
+
+          const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
+          const referSnapshot = await getDocs(referQuery);
+          document.getElementById("totalRefers").innerText = referSnapshot.size;
+
+          document.getElementById("accountStatus").innerText = data.isPro === true ? "🌟 Pro Account" : "🔆 Regular Account";
+        }
+      } catch (err) {
+        alert("Failed to load user data: " + err.message);
+      }
+    });
+
+    window.logout = async function () {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
+
+    window.copyReferCode = function () {
+      const input = document.getElementById("userReferCode");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(() => alert("Refer code copied!"));
+    };
+  </script>
+</body>
+</html>
+
+deposit form hoba ja thakba 
+
+1. selected method bKash nagad USDT 
+2. amount
+
+r baki sob ager motoi thakba full html dao 
+ChatGPT said:
+Here's the full HTML code with a Deposit Form section added to your existing dashboard. This new section includes:
+
+A dropdown to select deposit method (bKash, Nagad, USDT)
+
+An input field for deposit amount
+
+A submit button (non-functional — you'll need to wire it up depending on your backend)
+
+<!-- Deposit Section -->
+<section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+  <h2 class="text-xl font-semibold mb-4">💰 Deposit Funds</h2>
+  <form id="depositForm" class="space-y-4">
+    <!-- Payment Method -->
+    <div>
+      <label for="depositMethod" class="block text-sm font-medium text-gray-700 mb-1">Select Method</label>
+      <select id="depositMethod" name="method" class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="bKash">bKash</option>
+        <option value="Nagad">Nagad</option>
+        <option value="USDT">USDT</option>
+      </select>
+    </div>
+
+    <!-- Deposit Amount -->
+    <div>
+      <label for="depositAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (৳)</label>
+      <input type="number" id="depositAmount" name="amount" min="1" required class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter amount">
+    </div>
+
+    <!-- Submit Button -->
+    <div>
+      <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+        Submit Deposit Request
+      </button>
+    </div>
+  </form>
+</section>
     </section>
 
     <!-- Task Section Button -->
