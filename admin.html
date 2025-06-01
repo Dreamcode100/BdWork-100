@@ -117,7 +117,8 @@
       collection,
       getDocs,
       doc,
-      updateDoc
+      updateDoc,
+      getDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -137,6 +138,7 @@
     const usersTableBody = document.getElementById("usersTableBody");
     const logoutBtn = document.getElementById("logoutBtn");
     const totalUsersCountElem = document.getElementById("totalUsersCount");
+    const depositsTableBody = document.getElementById("depositRequestsTableBody");
 
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
@@ -149,6 +151,7 @@
       } else {
         loadTotalUsersCount();
         loadUsers();
+        loadDepositRequests();
       }
     });
 
@@ -197,9 +200,6 @@
       }
     }
 
-    // Deposit Requests Section
-    const depositsTableBody = document.getElementById("depositRequestsTableBody");
-
     async function loadDepositRequests() {
       try {
         const depositsCol = collection(db, "deposits");
@@ -211,12 +211,15 @@
         }
 
         let rowsHtml = "";
-        depositsSnapshot.forEach((docSnap) => {
+        for (const docSnap of depositsSnapshot.docs) {
           const deposit = docSnap.data();
           const depositId = docSnap.id;
+          // Fetch the user's email using userId from deposit
+          const userDoc = await getDoc(doc(db, "users", deposit.userId));
+          const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
-              <td class="p-3 border border-gray-300">${deposit.userId}</td>
+              <td class="p-3 border border-gray-300">${userEmail}</td>
               <td class="p-3 border border-gray-300">${deposit.amount}</td>
               <td class="p-3 border border-gray-300">${deposit.method}</td>
               <td class="p-3 border border-gray-300 text-center">
@@ -236,10 +239,10 @@
               </td>
             </tr>
           `;
-        });
+        }
 
         depositsTableBody.innerHTML = rowsHtml;
-      } catch (error) {
+      } catch (error) {
         console.error("Error loading deposit requests:", error);
         depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
       }
