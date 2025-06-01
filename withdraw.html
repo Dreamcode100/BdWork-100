@@ -46,31 +46,76 @@
   </main>
 
   <script type="module">
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
-      authDomain: "bdwork-346d3.firebaseapp.com",
-      projectId: "bdwork-346d3",
-      storageBucket: "bdwork-346d3.appspot.com",
-      messagingSenderId: "900963179093",
-      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
-      measurementId: "G-FM1YJ8E5GK"
-    };
+  // Firebase setup
+  const firebaseConfig = {
+    apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
+    authDomain: "bdwork-346d3.firebaseapp.com",
+    projectId: "bdwork-346d3",
+    storageBucket: "bdwork-346d3.appspot.com",
+    messagingSenderId: "900963179093",
+    appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
+    measurementId: "G-FM1YJ8E5GK"
+  };
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-      }
-    });
+  let currentUser;
 
-    window.withdraw = () => {
-      alert("Withdraw function not implemented in this demo.");
-    };
-  </script>
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      return (window.location.href = "login.html");
+    }
+
+    currentUser = user;
+  });
+
+  window.withdraw = async () => {
+    const method = document.getElementById("withdrawMethod").value;
+    const amount = parseFloat(document.getElementById("withdrawAmount").value);
+    const address = document.getElementById("withdrawAddress").value.trim();
+
+    if (!method || !amount || !address || amount < 1) {
+      return alert("Please fill all fields correctly.");
+    }
+
+    try {
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+
+      if (userData.balance < amount) {
+        return alert("Insufficient balance.");
+      }
+
+      // Create a new withdraw request
+      await addDoc(collection(db, "withdrawRequests"), {
+        uid: currentUser.uid,
+        email: userData.email,
+        method,
+        amount,
+        address,
+        status: "pending",
+        createdAt: new Date()
+      });
+
+      // Deduct balance (optional – depends on your system)
+      await updateDoc(userRef, {
+        balance: userData.balance - amount
+      });
+
+      alert("Withdraw request submitted!");
+      window.location.href = "withdraw-history.html"; // Optional redirect
+    } catch (error) {
+      console.error("Withdraw error:", error);
+      alert("Failed to submit withdraw request.");
+    }
+  };
+  </script>
 </body>
 </html>
