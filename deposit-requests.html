@@ -45,8 +45,6 @@
     import {
       getFirestore,
       collection,
-      query,
-      orderBy,
       getDocs,
       doc,
       updateDoc,
@@ -80,33 +78,53 @@
     async function loadDepositRequests() {
       try {
         const depositsCol = collection(db, "deposits");
-        const q = query(depositsCol, orderBy("createdAt", "desc"));
-        const depositsSnapshot = await getDocs(q);
+        const depositsSnapshot = await getDocs(depositsCol);
 
         if (depositsSnapshot.empty) {
           depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
           return;
         }
 
+        // Convert to array and sort by createdAt (newest first)
+        const deposits = depositsSnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => {
+            const aTime = a.createdAt?.seconds || 0;
+            const bTime = b.createdAt?.seconds || 0;
+            return bTime - aTime;
+          });
+
         let rowsHtml = "";
-        for (const docSnap of depositsSnapshot.docs) {
-          const deposit = docSnap.data();
-          const depositId = docSnap.id;
-          const userDoc = await getDoc(doc(db, "users", deposit.userId));
-          const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
+
+        for (const deposit of deposits) {
+          const depositId = deposit.id;
+          const userId = deposit.userId || "";
+          const amount = deposit.amount || 0;
+          const method = deposit.method || "N/A";
+          const status = deposit.status || "pending";
+
+          let userEmail = "N/A";
+          try {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+              userEmail = userDoc.data().email || "N/A";
+            }
+          } catch (e) {
+            console.warn("User not found:", userId);
+          }
 
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
               <td class="p-3 border border-gray-300">${userEmail}</td>
-              <td class="p-3 border border-gray-300">${deposit.amount}</td>
-              <td class="p-3 border border-gray-300">${deposit.method}</td>
+              <td class="p-3 border border-gray-300">${amount}</td>
+              <td class="p-3 border border-gray-300">${method}</td>
               <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
+                ${status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
               </td>
               <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? `
-                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
-                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
+                ${status === "pending" ? `
+                  <button onclick="updateDepositStatus('${depositId}', '${userId}', ${amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
+                  <button onclick="updateDepositStatus('${depositId}', '${userId}', ${amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
                 ` : "N/A"}
               </td>
             </tr>
