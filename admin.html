@@ -80,6 +80,26 @@
           </table>
         </div>
       </div>
+
+      <div class="bg-white shadow rounded p-4">
+    <div class="text-xl font-semibold text-blue-700 mb-2">Deposit Requests</div>
+    <div class="overflow-x-auto max-h-[600px]">
+        <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
+            <thead class="bg-gray-100 sticky top-0 z-10">
+                <tr>
+                    <th class="p-3 border border-gray-300 text-left">User Email</th>
+                    <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
+                    <th class="p-3 border border-gray-300 text-left">Method</th>
+                    <th class="p-3 border border-gray-300 text-center">Status</th>
+                    <th class="p-3 border border-gray-300 text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="depositRequestsTableBody">
+                <!-- Dynamic rows will be added here -->
+            </tbody>
+        </table>
+    </div>
+      </div>
     </main>
   </div>
 
@@ -206,6 +226,66 @@
       }
     }
 
+    // Firebase collection reference
+const depositsCol = collection(db, "deposits");
+const depositsTableBody = document.getElementById("depositRequestsTableBody");
+
+// Load deposit requests
+async function loadDepositRequests() {
+    try {
+        const depositsSnapshot = await getDocs(depositsCol);
+        if (depositsSnapshot.empty) {
+            depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
+            return;
+        }
+
+        let rowsHtml = "";
+        depositsSnapshot.forEach((docSnap) => {
+            const deposit = docSnap.data();
+            const depositId = docSnap.id;
+
+            rowsHtml += `
+                <tr class="hover:bg-gray-50 border-t">
+                    <td class="p-3 border border-gray-300">${deposit.userId}</td>
+                    <td class="p-3 border border-gray-300">${deposit.amount}</td>
+                    <td class="p-3 border border-gray-300">${deposit.method}</td>
+                    <td class="p-3 border border-gray-300 text-center">
+                        ${deposit.status === "pending" ? "Pending" : deposit.status}
+                    </td>
+                    <td class="p-3 border border-gray-300 text-center">
+                        ${deposit.status === "pending" ? `
+                            <button onclick="updateDepositStatus('${depositId}', 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">
+                                Approve
+                            </button>
+                            <button onclick="updateDepositStatus('${depositId}', 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">
+                                Reject
+                            </button>
+                        ` : "N/A"}
+                    </td>
+                </tr>
+            `;
+        });
+
+        depositsTableBody.innerHTML = rowsHtml;
+    } catch (error) {
+        console.error("Error loading deposit requests:", error);
+        depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
+    }
+}
+
+// Update deposit request status (approve or reject)
+async function updateDepositStatus(depositId, status) {
+    try {
+        await updateDoc(doc(db, "deposits", depositId), {
+            status: status
+        });
+        alert(`Deposit request ${status}ed successfully.`);
+        loadDepositRequests();  // Reload deposit requests after update
+    } catch (error) {
+        console.error("Error updating deposit status:", error);
+        alert("Failed to update deposit status.");
+    }
+}
     // Sidebar toggle
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
