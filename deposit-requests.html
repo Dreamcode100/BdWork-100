@@ -104,7 +104,7 @@
                 ${deposit.status === "pending" ? `
                   <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
                   <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
-                ` : "N/A"}
+                ` : "-"}
               </td>
             </tr>
           `;
