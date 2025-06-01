@@ -17,18 +17,19 @@
     <div class="bg-white shadow rounded p-4">
       <div class="text-xl font-semibold text-blue-700 mb-2">Deposit Requests</div>
       <div class="overflow-x-auto max-h-[600px]">
-        <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
+        <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[700px]">
           <thead class="bg-gray-100 sticky top-0 z-10">
             <tr>
               <th class="p-3 border border-gray-300 text-left">User Email</th>
               <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
               <th class="p-3 border border-gray-300 text-left">Method</th>
+              <th class="p-3 border border-gray-300 text-left">Date & Time</th>
               <th class="p-3 border border-gray-300 text-center">Status</th>
               <th class="p-3 border border-gray-300 text-center">Actions</th>
             </tr>
           </thead>
           <tbody id="depositRequestsTableBody">
-            <tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>
+            <tr><td colspan="6" class="p-4 text-center">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -39,8 +40,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getAuth,
-      onAuthStateChanged,
-      signOut,
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
       getFirestore,
@@ -50,6 +50,7 @@
       updateDoc,
       getDoc,
       increment,
+      Timestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -75,13 +76,19 @@
       }
     });
 
+    function formatTimestamp(timestamp) {
+      if (!timestamp || !timestamp.toDate) return "N/A";
+      const date = timestamp.toDate();
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }
+
     async function loadDepositRequests() {
       try {
         const depositsCol = collection(db, "deposits");
         const depositsSnapshot = await getDocs(depositsCol);
 
         if (depositsSnapshot.empty) {
-          depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
+          depositsTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">No pending deposits</td></tr>`;
           return;
         }
 
@@ -91,12 +98,14 @@
           const depositId = docSnap.id;
           const userDoc = await getDoc(doc(db, "users", deposit.userId));
           const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
+          const formattedDate = formatTimestamp(deposit.createdAt);
 
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
               <td class="p-3 border border-gray-300">${userEmail}</td>
               <td class="p-3 border border-gray-300">${deposit.amount}</td>
               <td class="p-3 border border-gray-300">${deposit.method}</td>
+              <td class="p-3 border border-gray-300">${formattedDate}</td>
               <td class="p-3 border border-gray-300 text-center">
                 ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
               </td>
@@ -113,7 +122,7 @@
         depositsTableBody.innerHTML = rowsHtml;
       } catch (error) {
         console.error("Error loading deposit requests:", error);
-        depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
+        depositsTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
       }
     }
 
