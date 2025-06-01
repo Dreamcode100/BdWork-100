@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>User Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
@@ -71,7 +71,7 @@
           <option value="Nagad">Nagad</option>
           <option value="USDT">USDT</option>
         </select>
-
+        
         <input
           id="withdrawAmount"
           type="number"
@@ -141,7 +141,7 @@
           const data = userDoc.data();
           currentUserData = { uid: user.uid, ...data };
 
-          document.getElementById("userEmail").innerText = data.email || user.email || "No Email";
+          document.getElementById("userEmail").innerText = data.email;
           document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
           document.getElementById("userReferCode").value = user.uid;
 
@@ -155,126 +155,159 @@
 
           if (isPro) {
             if (data.proExpiryTimestamp) {
-              const expiryDate = typeof data.proExpiryTimestamp.toDate === "function"
+              const expiryDate = data.proExpiryTimestamp.toDate
                 ? data.proExpiryTimestamp.toDate()
                 : new Date(data.proExpiryTimestamp);
               document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
             }
-            proBtn.innerText = "Pro Account Active";
+            proBtn.innerText = "Already Activated";
             proBtn.disabled = true;
             proBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+            proBtn.classList.remove("bg-purple-600", "hover:bg-purple-700");
           } else {
             document.getElementById("proExpiryDate").innerText = "-";
             proBtn.innerText = "Activate Pro Account";
             proBtn.disabled = false;
             proBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+            proBtn.classList.add("bg-purple-600", "hover:bg-purple-700");
           }
-        }
-      } catch (error) {
-        alert("Failed to load user data: " + error.message);
-      }
 
-      // Load Pro Account Settings
-      try {
-        const settingsDoc = await getDoc(doc(db, "settings", "pro"));
-        if (settingsDoc.exists()) {
-          proSettings = settingsDoc.data();
+          const proSettingsDocRef = doc(db, "settings", "proAccount");
+          const proSettingsDocSnap = await getDoc(proSettingsDocRef);
+          if (proSettingsDocSnap.exists()) {
+            proSettings = proSettingsDocSnap.data();
+            document.getElementById("proActivationCost").innerText = proSettings.activationCost ?? "-";
+            document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus ?? "-";
+            document.getElementById("proValidity").innerText = proSettings.validity ?? "-";
+          }
 
-          document.getElementById("proActivationCost").innerText = proSettings.activationCost || 0;
-          document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus || 0;
-          document.getElementById("proValidity").innerText = proSettings.validity || 0;
+          giveDailyBonus();
         }
-      } catch (error) {
-        alert("Failed to load pro settings: " + error.message);
+      } catch (err) {
+        alert("Failed to load user data: " + err.message);
       }
     });
 
     async function activateProAccount() {
-      console.log("activateProAccount called");
-      if (!currentUserData || !proSettings.activationCost || !proSettings.validity) {
-        alert("User or settings not loaded yet.");
-        return;
-      }
+      if (!currentUserData || !proSettings.activationCost || !proSettings.validity) return alert("User or settings not loaded.");
 
-      if (currentUserData.isPro) {
-        alert("You are already a Pro user.");
-        return;
-      }
+      if (currentUserData.isPro) return; // Already active (redundant safety)
 
       const cost = proSettings.activationCost;
       const validity = proSettings.validity;
       const currentBalance = currentUserData.balance || 0;
 
-      if (currentBalance < cost) {
-        alert("Insufficient balance to activate Pro Account.");
-        return;
-      }
+      if (currentBalance < cost) return alert("Not enough balance.");
 
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + validity);
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + validity);
 
       try {
         await updateDoc(doc(db, "users", currentUserData.uid), {
           isPro: true,
-          proExpiryTimestamp: Timestamp.fromDate(expiryDate),
+          proExpiryTimestamp: Timestamp.fromDate(expiry),
           balance: currentBalance - cost,
           lastBonusDate: null
         });
-        alert("Pro account activated successfully!");
-        // Reload page to reflect changes
-        window.location.reload();
+
+        // Update local data & UI without reload
+        currentUserData.isPro = true;
+        currentUserData.balance = currentBalance - cost;
+        currentUserData.proExpiryTimestamp = Timestamp.fromDate(expiry);
+        currentUserData.lastBonusDate = null;
+
+        document.getElementById("userBalance").innerText = `৳${currentUserData.balance}`;
+        document.getElementById("isProStatus").innerText = "Yes";
+        document.getElementById("proExpiryDate").innerText = expiry.toLocaleDateString();
+
+        const proBtn = document.getElementById("activateProBtn");
+        proBtn.innerText = "Already Activated";
+        proBtn.disabled = true;
+        proBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+        proBtn.classList.remove("bg-purple-600", "hover:bg-purple-700");
+
+        alert("Pro account activated!");
       } catch (err) {
-        console.error("Activation failed:", err);
         alert("Activation failed: " + err.message);
       }
     }
 
-    function copyReferCode() {
-      const referInput = document.getElementById("userReferCode");
-      referInput.select();
-      referInput.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(referInput.value)
-        .then(() => alert("Refer code copied!"))
-        .catch(() => alert("Failed to copy refer code."));
+    async function giveDailyBonus() {
+      if (!currentUserData?.isPro || !proSettings.dailyBonus || !currentUserData.proExpiryTimestamp) return;
+
+      const now = new Date();
+      const expiry = currentUserData.proExpiryTimestamp.toDate ? currentUserData.proExpiryTimestamp.toDate() : new Date(currentUserData.proExpiryTimestamp);
+      if (now > expiry) return;
+
+      const todayStr = now.toISOString().split("T")[0];
+      if (currentUserData.lastBonusDate === todayStr) return;
+
+      const newBalance = (currentUserData.balance || 0) + proSettings.dailyBonus;
+
+      try {
+        await updateDoc(doc(db, "users", currentUserData.uid), {
+          balance: newBalance,
+          lastBonusDate: todayStr
+        });
+        document.getElementById("userBalance").innerText = `৳${newBalance}`;
+        currentUserData.balance = newBalance;
+        currentUserData.lastBonusDate = todayStr;
+      } catch (err) {
+        console.error("Daily bonus error:", err.message);
+      }
     }
 
-    async function withdraw() {
-      const method = document.getElementById("withdrawMethod").value;
-      const amount = parseInt(document.getElementById("withdrawAmount").value);
+    window.withdraw = async function () {
+      const amount = parseFloat(document.getElementById("withdrawAmount").value);
+      const method = document.getElementById("withdrawMethod").value.trim();
       const address = document.getElementById("withdrawAddress").value.trim();
 
-      if (!method) return alert("Select a withdraw method.");
-      if (!amount || amount < 1) return alert("Enter a valid withdraw amount.");
-      if (!address) return alert("Enter your withdraw number or wallet address.");
-      if (currentUserData.balance < amount) return alert("Insufficient balance.");
+      if (isNaN(amount) || amount <= 0) return alert("Enter valid amount.");
+      if (!method) return alert("Please select a withdrawal method.");
+      if (!address) return alert("Please enter number or wallet address.");
+      if (!currentUserData) return alert("User data not loaded yet.");
+      if (amount > currentUserData.balance) return alert("Insufficient balance.");
 
       try {
         await addDoc(collection(db, "withdraws"), {
           uid: currentUserData.uid,
-          method,
+          userId: currentUserData.uid,
+          userEmail: currentUserData.email,
           amount,
+          method,
           address,
-          createdAt: Timestamp.now(),
+          timestamp: Timestamp.now(),
           status: "pending"
         });
 
-        // Update user balance after withdraw request
+        const newBalance = currentUserData.balance - amount;
         await updateDoc(doc(db, "users", currentUserData.uid), {
-          balance: currentUserData.balance - amount
+          balance: newBalance
         });
 
-        alert("Withdraw request sent!");
-        window.location.reload();
-      } catch (error) {
-        alert("Failed to send withdraw request: " + error.message);
-      }
-    }
+        currentUserData.balance = newBalance;
+        document.getElementById("userBalance").innerText = `৳${newBalance}`;
 
-    function logout() {
-      signOut(auth)
-        .then(() => window.location.href = "login.html")
-        .catch((err) => alert("Logout failed: " + err.message));
-    }
+        alert("Withdrawal request submitted successfully!");
+      } catch (err) {
+        alert("Withdrawal failed: " + err.message);
+      }
+    };
+
+    window.copyReferCode = function () {
+      const referInput = document.getElementById("userReferCode");
+      referInput.select();
+      referInput.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(referInput.value).then(() => {
+        alert("Refer code copied!");
+      });
+    };
+
+    window.logout = function () {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
   </script>
 </body>
 </html>
