@@ -41,11 +41,12 @@
     import {
       getAuth,
       onAuthStateChanged,
-      signOut,
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
       getFirestore,
       collection,
+      query,
+      orderBy,
       getDocs,
       doc,
       updateDoc,
@@ -79,7 +80,8 @@
     async function loadDepositRequests() {
       try {
         const depositsCol = collection(db, "deposits");
-        const depositsSnapshot = await getDocs(depositsCol);
+        const q = query(depositsCol, orderBy("createdAt", "desc"));
+        const depositsSnapshot = await getDocs(q);
 
         if (depositsSnapshot.empty) {
           depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
