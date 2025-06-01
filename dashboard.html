@@ -28,12 +28,15 @@
         <p><strong>Active:</strong> <span id="isProStatus">Loading...</span></p>
         <p><strong>Expires On:</strong> <span id="proExpiryDate">-</span></p>
         <hr class="my-3" />
-        <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Settings</h3>
-        <ul class="list-disc list-inside space-y-1 text-gray-700">
+        <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Plan</h3>
+        <ul class="list-disc list-inside space-y-1 text-gray-700 mb-4">
           <li>Activation Cost: ৳<span id="proActivationCost">...</span></li>
           <li>Daily Bonus: ৳<span id="proDailyBonus">...</span></li>
           <li>Validity: <span id="proValidity">...</span> days</li>
         </ul>
+        <button onclick="activateProAccount()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded w-full transition">
+          Activate Pro Account
+        </button>
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -104,8 +107,14 @@
     </div>
   </main>
 
-  <!-- JavaScript: Firebase + Dashboard Logic -->
+  <!-- Firebase & Logic Script -->
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, Timestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
       authDomain: "bdwork-346d3.firebaseapp.com",
@@ -116,16 +125,11 @@
       measurementId: "G-FM1YJ8E5GK"
     };
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, Timestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     let currentUserData = null;
+    let proSettings = {};
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "login.html";
@@ -141,15 +145,12 @@
           document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
           document.getElementById("userReferCode").value = user.uid;
 
-          // Show total refers count
           const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          // Pro Account Status
           const isPro = data.isPro === true;
           document.getElementById("isProStatus").innerText = isPro ? "Yes" : "No";
-
           if (isPro && data.proExpiryTimestamp) {
             const expiryDate = data.proExpiryTimestamp.toDate
               ? data.proExpiryTimestamp.toDate()
@@ -159,63 +160,105 @@
             document.getElementById("proExpiryDate").innerText = "-";
           }
 
-          // Load Pro Account Settings from settings/proAccount
           const proSettingsDocRef = doc(db, "settings", "proAccount");
           const proSettingsDocSnap = await getDoc(proSettingsDocRef);
           if (proSettingsDocSnap.exists()) {
-            const proData = proSettingsDocSnap.data();
-            document.getElementById("proActivationCost").innerText = proData.activationCost ?? "-";
-            document.getElementById("proDailyBonus").innerText = proData.dailyBonus ?? "-";
-            document.getElementById("proValidity").innerText = proData.validity ?? "-";
-          } else {
-            document.getElementById("proActivationCost").innerText = "-";
-            document.getElementById("proDailyBonus").innerText = "-";
-            document.getElementById("proValidity").innerText = "-";
+            proSettings = proSettingsDocSnap.data();
+            document.getElementById("proActivationCost").innerText = proSettings.activationCost ?? "-";
+            document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus ?? "-";
+            document.getElementById("proValidity").innerText = proSettings.validity ?? "-";
           }
+
+          giveDailyBonus();
         }
       } catch (err) {
         alert("Failed to load user data: " + err.message);
       }
     });
 
-    window.withdraw = async function () {
-      const amountInput = document.getElementById("withdrawAmount");
-      const methodInput = document.getElementById("withdrawMethod");
-      const addressInput = document.getElementById("withdrawAddress");
+    async function activateProAccount() {
+      if (!currentUserData || !proSettings.activationCost || !proSettings.validity) return alert("User or settings not loaded.");
 
-      const amount = parseFloat(amountInput.value);
-      const method = methodInput.value.trim();
-      const address = addressInput.value.trim();
+      const cost = proSettings.activationCost;
+      const validity = proSettings.validity;
+      const currentBalance = currentUserData.balance || 0;
+
+      if (currentBalance < cost) return alert("Not enough balance.");
+
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + validity);
+
+      try {
+        await updateDoc(doc(db, "users", currentUserData.uid), {
+          isPro: true,
+          proExpiryTimestamp: Timestamp.fromDate(expiry),
+          balance: currentBalance - cost,
+          lastBonusDate: null
+        });
+
+        alert("Pro account activated!");
+        window.location.reload();
+      } catch (err) {
+        alert("Activation failed: " + err.message);
+      }
+    }
+
+    async function giveDailyBonus() {
+      if (!currentUserData?.isPro || !proSettings.dailyBonus || !currentUserData.proExpiryTimestamp) return;
+
+      const now = new Date();
+      const expiry = currentUserData.proExpiryTimestamp.toDate ? currentUserData.proExpiryTimestamp.toDate() : new Date(currentUserData.proExpiryTimestamp);
+      if (now > expiry) return;
+
+      const todayStr = now.toISOString().split("T")[0];
+      if (currentUserData.lastBonusDate === todayStr) return;
+
+      const newBalance = (currentUserData.balance || 0) + proSettings.dailyBonus;
+
+      try {
+        await updateDoc(doc(db, "users", currentUserData.uid), {
+          balance: newBalance,
+          lastBonusDate: todayStr
+        });
+        document.getElementById("userBalance").innerText = `৳${newBalance}`;
+        currentUserData.balance = newBalance;
+        currentUserData.lastBonusDate = todayStr;
+      } catch (err) {
+        console.error("Daily bonus error:", err.message);
+      }
+    }
+
+    window.withdraw = async function () {
+      const amount = parseFloat(document.getElementById("withdrawAmount").value);
+      const method = document.getElementById("withdrawMethod").value.trim();
+      const address = document.getElementById("withdrawAddress").value.trim();
 
       if (isNaN(amount) || amount <= 0) return alert("Enter valid amount.");
       if (!method) return alert("Please select a withdrawal method.");
       if (!address) return alert("Please enter number or wallet address.");
       if (!currentUserData) return alert("User data not loaded yet.");
-
-      const currentBalance = currentUserData.balance || 0;
-      if (amount > currentBalance) return alert("Insufficient balance.");
+      if (amount > currentUserData.balance) return alert("Insufficient balance.");
 
       try {
         await addDoc(collection(db, "withdraws"), {
           uid: currentUserData.uid,
           userId: currentUserData.uid,
           userEmail: currentUserData.email,
-          amount: amount,
-          method: method,
-          address: address,
+          amount,
+          method,
+          address,
           timestamp: Timestamp.now(),
           status: "pending"
         });
 
-        const userDocRef = doc(db, "users", currentUserData.uid);
-        const newBalance = currentBalance - amount;
-        await updateDoc(userDocRef, { balance: newBalance });
+        const newBalance = currentUserData.balance - amount;
+        await updateDoc(doc(db, "users", currentUserData.uid), { balance: newBalance });
         currentUserData.balance = newBalance;
 
         document.getElementById("userBalance").innerText = `৳${newBalance}`;
-        amountInput.value = "";
-        methodInput.value = "";
-        addressInput.value = "";
+        document.getElementById("withdrawAmount").value = "";
+        document.getElementById("withdrawMethod").value = "";
+        document.getElementById("withdrawAddress").value = "";
 
         alert(`Withdraw request of ৳${amount} submitted via ${method}!`);
         window.location.reload();
