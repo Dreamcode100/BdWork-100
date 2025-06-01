@@ -118,7 +118,8 @@
       getDocs,
       doc,
       updateDoc,
-      getDoc
+      getDoc,
+      increment
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -214,27 +215,21 @@
         for (const docSnap of depositsSnapshot.docs) {
           const deposit = docSnap.data();
           const depositId = docSnap.id;
-          // Fetch the user's email using userId from deposit
           const userDoc = await getDoc(doc(db, "users", deposit.userId));
           const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
+
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
               <td class="p-3 border border-gray-300">${userEmail}</td>
               <td class="p-3 border border-gray-300">${deposit.amount}</td>
               <td class="p-3 border border-gray-300">${deposit.method}</td>
               <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : 
-                  deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : 
-                  "<span class='text-red-500'>Rejected</span>"}
+                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
               </td>
               <td class="p-3 border border-gray-300 text-center">
                 ${deposit.status === "pending" ? `
-                  <button onclick="updateDepositStatus('${depositId}', 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">
-                    Approve
-                  </button>
-                  <button onclick="updateDepositStatus('${depositId}', 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">
-                    Reject
-                  </button>
+                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
+                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
                 ` : "N/A"}
               </td>
             </tr>
@@ -242,27 +237,35 @@
         }
 
         depositsTableBody.innerHTML = rowsHtml;
-      } catch (error) {
+      } catch (error) {
         console.error("Error loading deposit requests:", error);
         depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
       }
     }
 
-    async function updateDepositStatus(depositId, status) {
+    window.updateDepositStatus = async function (depositId, userId, amount, status) {
       const confirmAction = confirm(`Are you sure you want to mark this deposit as ${status}?`);
       if (!confirmAction) return;
 
       try {
-        await updateDoc(doc(db, "deposits", depositId), { status: status });
-        alert(`Deposit request ${status}ed successfully.`);
-        loadDepositRequests(); 
+        const depositRef = doc(db, "deposits", depositId);
+        await updateDoc(depositRef, { status });
+
+        if (status === "approved") {
+          const userRef = doc(db, "users", userId);
+          await updateDoc(userRef, {
+            balance: increment(amount)
+          });
+        }
+
+        alert(`Deposit ${status} successfully.`);
+        loadDepositRequests();
+        loadUsers();
       } catch (error) {
         console.error("Error updating deposit status:", error);
         alert("Failed to update deposit status.");
       }
-    }
-
-    loadDepositRequests();
+    };
   </script>
 </body>
 </html>
