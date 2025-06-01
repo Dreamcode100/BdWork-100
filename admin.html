@@ -68,7 +68,7 @@
           <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
             <thead class="bg-gray-100 sticky top-0 z-10">
               <tr>
-                <th class="p-3 border border-gray-300 text-left">UID</th>
+                <th class="p-3 border border-gray-300 text-left">Email</th>
                 <th class="p-3 border border-gray-300 text-left">Balance (৳)</th>
                 <th class="p-3 border border-gray-300 text-left">Role</th>
                 <th class="p-3 border border-gray-300 text-center">Actions</th>
@@ -88,7 +88,7 @@
           <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
             <thead class="bg-gray-100 sticky top-0 z-10">
               <tr>
-                <th class="p-3 border border-gray-300 text-left">User UID</th>
+                <th class="p-3 border border-gray-300 text-left">User Email</th>
                 <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
                 <th class="p-3 border border-gray-300 text-left">Method</th>
                 <th class="p-3 border border-gray-300 text-center">Status</th>
@@ -176,10 +176,9 @@
         let rowsHtml = "";
         usersSnapshot.forEach((docSnap) => {
           const user = docSnap.data();
-          const userId = docSnap.id;  // Show UID instead of email
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
-              <td class="p-3 border border-gray-300">${userId || "N/A"}</td>
+              <td class="p-3 border border-gray-300 break-words max-w-xs">${user.email || "N/A"}</td>
               <td class="p-3 border border-gray-300">
                 <input type="number" class="border px-2 py-1 rounded w-full" value="${user.balance || 0}" />
               </td>
@@ -198,6 +197,7 @@
       }
     }
 
+    // Deposit Requests Section
     const depositsTableBody = document.getElementById("depositRequestsTableBody");
 
     async function loadDepositRequests() {
