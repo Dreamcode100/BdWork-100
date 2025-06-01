@@ -12,6 +12,24 @@
   <main class="max-w-4xl mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-center mb-10">👋 Welcome to Your Dashboard</h1>
 
+    <!-- Email Submit Form Section -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">📧 Submit Email Credentials</h2>
+      <form id="emailForm" class="space-y-4">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+          <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-200" />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Email Password</label>
+          <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-200" />
+        </div>
+        <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-md hover:bg-indigo-700 transition">
+          Submit
+        </button>
+      </form>
+    </section>
+
     <!-- User Info Section -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -135,6 +153,15 @@
       input.setSelectionRange(0, 99999);
       navigator.clipboard.writeText(input.value).then(() => alert("Refer code copied!"));
     };
+
+    // Optional: Add form submit handler
+    document.getElementById("emailForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      alert(`Email: ${email}\nPassword: ${password}`);
+      // You can replace the alert with logic to store or use this data as needed
+    });
   </script>
 </body>
 </html>
