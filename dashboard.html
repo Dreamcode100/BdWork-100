@@ -1,279 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>User Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
-  <main class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-10">👋 Welcome to Your Dashboard</h1>
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-10">👋 Welcome to Your Dashboard</h1>
 
-    <!-- User Info Section -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p class="text-sm text-gray-500 mb-1">Email</p>
-        <p id="userEmail" class="text-xl font-semibold text-gray-800">Loading...</p>
+    <!-- User Info Section -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p class="text-sm text-gray-500 mb-1">Email</p>
+        <p id="userEmail" class="text-xl font-semibold text-gray-800">Loading...</p>
 
-        <p class="text-sm text-gray-500 mt-6 mb-1">Balance</p>
-        <p id="userBalance" class="text-xl font-bold text-green-600">৳0</p>
-      </div>
+        <p class="text-sm text-gray-500 mt-6 mb-1">Balance</p>
+        <p id="userBalance" class="text-xl font-bold text-green-600">৳0</p>
+      </div>
 
-      <!-- Pro Account Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <h2 class="text-xl font-semibold mb-4 text-blue-700">💎 Pro Account Status</h2>
-        <p><strong>Active:</strong> <span id="isProStatus">Loading...</span></p>
-        <p><strong>Expires On:</strong> <span id="proExpiryDate">-</span></p>
-        <hr class="my-3" />
-        <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Plan</h3>
-        <ul class="list-disc list-inside space-y-1 text-gray-700 mb-4">
-          <li>Activation Cost: ৳<span id="proActivationCost">...</span></li>
-          <li>Daily Bonus: ৳<span id="proDailyBonus">...</span></li>
-          <li>Validity: <span id="proValidity">...</span> days</li>
-        </ul>
-        <button id="activateProBtn" onclick="activateProAccount()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded w-full transition">
-          Activate Pro Account
-        </button>
-      </div>
+      <!-- Pro Account Section -->
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-xl font-semibold mb-4 text-blue-700">💎 Pro Account Status</h2>
+        <p><strong>Active:</strong> <span id="isProStatus">Loading...</span></p>
+        <p><strong>Expires On:</strong> <span id="proExpiryDate">-</span></p>
+        <hr class="my-3" />
+        <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Plan</h3>
+        <ul class="list-disc list-inside space-y-1 text-gray-700">
+          <li>Activation Cost: ৳<span id="proActivationCost">...</span></li>
+          <li>Daily Bonus: ৳<span id="proDailyBonus">...</span></li>
+          <li>Validity: <span id="proValidity">...</span> days</li>
+        </ul>
+      </div>
 
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p class="text-sm text-gray-500 mb-1">Total Refers</p>
-        <p id="totalRefers" class="text-xl font-semibold text-gray-800">0</p>
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p class="text-sm text-gray-500 mb-1">Total Refers</p>
+        <p id="totalRefers" class="text-xl font-semibold text-gray-800">0</p>
 
-        <p class="text-sm text-gray-500 mt-6 mb-2">Your Refer Code</p>
-        <div class="flex items-center gap-3">
-          <input id="userReferCode" readonly class="text-lg font-mono font-semibold text-blue-800 bg-blue-50 px-3 py-2 rounded w-full border border-blue-200" />
-          <button onclick="copyReferCode()" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm transition">
-            Copy
-          </button>
-        </div>
-      </div>
-    </section>
+        <p class="text-sm text-gray-500 mt-6 mb-2">Your Refer Code</p>
+        <div class="flex items-center gap-3">
+          <input id="userReferCode" readonly class="text-lg font-mono font-semibold text-blue-800 bg-blue-50 px-3 py-2 rounded w-full border border-blue-200" />
+          <button onclick="copyReferCode()" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm transition">
+            Copy
+          </button>
+        </div>
+      </div>
+    </section>
 
-    <!-- Task Section Button -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <h2 class="text-xl font-semibold mb-4">🎯 Complete Tasks & Earn ৳5 Each</h2>
-      <a href="job.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
-        Go to Tasks Page →
-      </a>
-    </section>
+    <!-- Task Section Button -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">🎯 Complete Tasks & Earn ৳5 Each</h2>
+      <a href="job.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+        Go to Tasks Page →
+      </a>
+    </section>
 
-    <!-- Withdraw Section -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <h2 class="text-xl font-semibold mb-4">💸 Withdraw Balance</h2>
-      <div class="flex flex-col gap-4">
-        <select id="withdrawMethod" class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <option value="">Select Method</option>
-          <option value="BKash">BKash</option>
-          <option value="Nagad">Nagad</option>
-          <option value="USDT">USDT</option>
-        </select>
-        
-        <input
-          id="withdrawAmount"
-          type="number"
-          min="1"
-          placeholder="Enter amount"
-          class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        />
+    <!-- Withdraw Section -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">💸 Withdraw Balance</h2>
+      <div class="flex flex-col gap-4">
+        <select id="withdrawMethod" class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <option value="">Select Method</option>
+          <option value="BKash">BKash</option>
+          <option value="Nagad">Nagad</option>
+          <option value="USDT">USDT</option>
+        </select>
+        
+        <input
+          id="withdrawAmount"
+          type="number"
+          min="1"
+          placeholder="Enter amount"
+          class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+        />
 
-        <input
-          id="withdrawAddress"
-          type="text"
-          placeholder="Enter Number / Wallet Address"
-          class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        />
+        <input
+          id="withdrawAddress"
+          type="text"
+          placeholder="Enter Number / Wallet Address"
+          class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+        />
 
-        <button onclick="withdraw()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-full transition">
-          Withdraw
-        </button>
-      </div>
-    </section>
+        <button onclick="withdraw()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-full transition">
+          Withdraw
+        </button>
+      </div>
+    </section>
 
-    <!-- Withdraw History Redirect -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <h2 class="text-xl font-semibold mb-4">📜 Withdraw History</h2>
-      <a href="withdraw-history.html" class="text-blue-600 hover:underline text-center block">View Withdraw History →</a>
-    </section>
+    <!-- Withdraw History Redirect -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">📜 Withdraw History</h2>
+      <a href="withdraw-history.html" class="text-blue-600 hover:underline text-center block">View Withdraw History →</a>
+    </section>
 
-    <!-- Logout -->
-    <div class="text-center">
-      <button onclick="logout()" class="bg-red-600 text-white px-5 py-2 rounded-md hover:bg-red-700 transition text-lg">
-        <i class="fas fa-sign-out-alt mr-2"></i> Logout
-      </button>
-    </div>
-  </main>
+    <!-- Logout -->
+    <div class="text-center">
+      <button onclick="logout()" class="bg-red-600 text-white px-5 py-2 rounded-md hover:bg-red-700 transition text-lg">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+      </button>
+    </div>
+  </main>
 
-  <!-- Firebase & Logic Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, Timestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <!-- JavaScript: Firebase + Dashboard Logic -->
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
+      authDomain: "bdwork-346d3.firebaseapp.com",
+      projectId: "bdwork-346d3",
+      storageBucket: "bdwork-346d3.appspot.com",
+      messagingSenderId: "900963179093",
+      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
+      measurementId: "G-FM1YJ8E5GK"
+    };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
-      authDomain: "bdwork-346d3.firebaseapp.com",
-      projectId: "bdwork-346d3",
-      storageBucket: "bdwork-346d3.appspot.com",
-      messagingSenderId: "900963179093",
-      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
-      measurementId: "G-FM1YJ8E5GK"
-    };
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, Timestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    let currentUserData = null;
-    let proSettings = {};
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUserData = null;
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "login.html";
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "login.html";
 
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          currentUserData = { uid: user.uid, ...data };
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          currentUserData = { uid: user.uid, ...data };
 
-          document.getElementById("userEmail").innerText = data.email;
-          document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
-          document.getElementById("userReferCode").value = user.uid;
+          document.getElementById("userEmail").innerText = data.email;
+          document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
+          document.getElementById("userReferCode").value = user.uid;
 
-          const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
-          const referSnapshot = await getDocs(referQuery);
-          document.getElementById("totalRefers").innerText = referSnapshot.size;
+          // Show total refers count
+          const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
+          const referSnapshot = await getDocs(referQuery);
+          document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          const isPro = data.isPro === true;
-          document.getElementById("isProStatus").innerText = isPro ? "Yes" : "No";
-          const proBtn = document.getElementById("activateProBtn");
+          // Pro Account Status
+          const isPro = data.isPro === true;
+          document.getElementById("isProStatus").innerText = isPro ? "Yes" : "No";
 
-          if (isPro) {
-            if (data.proExpiryTimestamp) {
-              const expiryDate = data.proExpiryTimestamp.toDate
-                ? data.proExpiryTimestamp.toDate()
-                : new Date(data.proExpiryTimestamp);
-              document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
-            }
-            proBtn.innerText = "Already Activated";
-            proBtn.disabled = true;
-            proBtn.classList.add("bg-gray-400", "cursor-not-allowed");
-            proBtn.classList.remove("bg-purple-600", "hover:bg-purple-700");
-          } else {
-            document.getElementById("proExpiryDate").innerText = "-";
-          }
+          if (isPro && data.proExpiryTimestamp) {
+            const expiryDate = data.proExpiryTimestamp.toDate
+              ? data.proExpiryTimestamp.toDate()
+              : new Date(data.proExpiryTimestamp);
+            document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+          } else {
+            document.getElementById("proExpiryDate").innerText = "-";
+          }
 
-          const proSettingsDocRef = doc(db, "settings", "proAccount");
-          const proSettingsDocSnap = await getDoc(proSettingsDocRef);
-          if (proSettingsDocSnap.exists()) {
-            proSettings = proSettingsDocSnap.data();
-            document.getElementById("proActivationCost").innerText = proSettings.activationCost || "...";
-            document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus || "...";
-            document.getElementById("proValidity").innerText = proSettings.validity || "...";
-          } else {
-            alert("Pro account settings not found!");
-          }
+          // Load Pro Account Settings from settings/proAccount
+          const proSettingsDocRef = doc(db, "settings", "proAccount");
+          const proSettingsDocSnap = await getDoc(proSettingsDocRef);
+          if (proSettingsDocSnap.exists()) {
+            const proData = proSettingsDocSnap.data();
+            document.getElementById("proActivationCost").innerText = proData.activationCost ?? "-";
+            document.getElementById("proDailyBonus").innerText = proData.dailyBonus ?? "-";
+            document.getElementById("proValidity").innerText = proData.validity ?? "-";
+          } else {
+            document.getElementById("proActivationCost").innerText = "-";
+            document.getElementById("proDailyBonus").innerText = "-";
+            document.getElementById("proValidity").innerText = "-";
+          }
+        }
+      } catch (err) {
+        alert("Failed to load user data: " + err.message);
+      }
+    });
 
-        } else {
-          alert("User data not found.");
-          await signOut(auth);
-          window.location.href = "login.html";
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        alert("Failed to load user data. Please try again.");
-      }
+    window.withdraw = async function () {
+      const amountInput = document.getElementById("withdrawAmount");
+      const methodInput = document.getElementById("withdrawMethod");
+      const addressInput = document.getElementById("withdrawAddress");
 
-    });
+      const amount = parseFloat(amountInput.value);
+      const method = methodInput.value.trim();
+      const address = addressInput.value.trim();
 
-    async function activateProAccount() {
-      console.log("Activate Pro Account clicked");
-      if (!currentUserData || !proSettings.activationCost || !proSettings.validity) {
-        alert("User or settings not loaded.");
-        console.error("Missing data:", { currentUserData, proSettings });
-        return;
-      }
+      if (isNaN(amount) || amount <= 0) return alert("Enter valid amount.");
+      if (!method) return alert("Please select a withdrawal method.");
+      if (!address) return alert("Please enter number or wallet address.");
+      if (!currentUserData) return alert("User data not loaded yet.");
 
-      if (currentUserData.isPro) {
-        alert("You already have an active Pro Account.");
-        return;
-      }
+      const currentBalance = currentUserData.balance || 0;
+      if (amount > currentBalance) return alert("Insufficient balance.");
 
-      const cost = proSettings.activationCost;
-      const validity = proSettings.validity;
-      const currentBalance = currentUserData.balance || 0;
+      try {
+        await addDoc(collection(db, "withdraws"), {
+          uid: currentUserData.uid,
+          userId: currentUserData.uid,
+          userEmail: currentUserData.email,
+          amount: amount,
+          method: method,
+          address: address,
+          timestamp: Timestamp.now(),
+          status: "pending"
+        });
 
-      console.log("Current Balance:", currentBalance, "Cost:", cost);
+        const userDocRef = doc(db, "users", currentUserData.uid);
+        const newBalance = currentBalance - amount;
+        await updateDoc(userDocRef, { balance: newBalance });
+        currentUserData.balance = newBalance;
 
-      if (currentBalance < cost) {
-        alert("Insufficient balance to activate Pro Account.");
-        return;
-      }
+        document.getElementById("userBalance").innerText = `৳${newBalance}`;
+        amountInput.value = "";
+        methodInput.value = "";
+        addressInput.value = "";
 
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + validity);
+        alert(`Withdraw request of ৳${amount} submitted via ${method}!`);
+        window.location.reload();
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    };
 
-      try {
-        const userDocRef = doc(db, "users", currentUserData.uid);
-        await updateDoc(userDocRef, {
-          isPro: true,
-          proExpiryTimestamp: Timestamp.fromDate(expiry),
-          balance: currentBalance - cost,
-          lastBonusDate: null
-        });
+    window.logout = async function () {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
 
-        // Update local data & UI without reload
-        currentUserData.isPro = true;
-        currentUserData.balance = currentBalance - cost;
-        currentUserData.proExpiryTimestamp = Timestamp.fromDate(expiry);
-        currentUserData.lastBonusDate = null;
-
-        console.log("Pro account activated, updating UI...");
-
-        document.getElementById("userBalance").innerText = `৳${currentUserData.balance}`;
-        document.getElementById("isProStatus").innerText = "Yes";
-        document.getElementById("proExpiryDate").innerText = expiry.toLocaleDateString();
-
-        const proBtn = document.getElementById("activateProBtn");
-        proBtn.innerText = "Already Activated";
-        proBtn.disabled = true;
-        proBtn.classList.add("bg-gray-400", "cursor-not-allowed");
-        proBtn.classList.remove("bg-purple-600", "hover:bg-purple-700");
-
-        alert("Pro account activated successfully!");
-      } catch (err) {
-        console.error("Activation error:", err);
-        alert("Activation failed: " + err.message);
-      }
-    }
-
-    function copyReferCode() {
-      const referInput = document.getElementById("userReferCode");
-      referInput.select();
-      referInput.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(referInput.value).then(() => {
-        alert("Refer code copied!");
-      }).catch(() => {
-        alert("Failed to copy refer code.");
-      });
-    }
-
-    async function withdraw() {
-      // Placeholder withdraw function for completeness
-      alert("Withdraw function not implemented in this example.");
-    }
-
-    function logout() {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      });
-    }
-  </script>
-
+    window.copyReferCode = function () {
+      const input = document.getElementById("userReferCode");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(() => alert("Refer code copied!"));
+    };
+  </script>
 </body>
 </html>
