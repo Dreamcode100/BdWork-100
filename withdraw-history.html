@@ -10,7 +10,7 @@
   <main class="max-w-2xl mx-auto p-4">
     <h1 class="text-2xl font-bold mb-6 text-center">📜 Withdraw History</h1>
     <div id="withdrawHistory" class="space-y-2">
-      <p class="text-sm text-gray-500 text-center">Loading history...</p>
+      <p class="text-sm text-gray-500 text-center">...</p>
     </div>
     <div class="text-center mt-6">
       <a href="dashboard.html" class="text-blue-600 hover:underline">← Back to Dashboard</a>
@@ -56,8 +56,8 @@
           historyContainer.innerHTML = "";
           withdrawSnap.forEach(doc => {
             const data = doc.data();
-            const date = data.timestamp?.toDate().toLocaleString() || "Unknown time";
-            const method = data.method || "Unknown";
+            const date = data.timestamp?.toDate().toLocaleString() || "N/A";
+            const method = data.method || "N/A";
             const address = data.address || "N/A";
             const item = document.createElement("div");
             item.className = "bg-white p-4 rounded-md shadow-sm text-sm space-y-1 border border-gray-200";
@@ -65,8 +65,8 @@
               <div class="flex justify-between items-center">
                 <p class="font-medium text-gray-800">৳${data.amount}</p>
                 <span class="text-xs px-2 py-1 rounded-full ${
-                  data.status === "approved" ? "bg-green-100 text-green-700" :
-                  data.status === "rejected" ? "bg-red-100 text-red-700" :
+                  data.status === "Approved" ? "bg-green-100 text-green-700" :
+                  data.status === "Rejected" ? "bg-red-100 text-red-700" :
                   "bg-yellow-100 text-yellow-700"
                 }">${data.status}</span>
               </div>
