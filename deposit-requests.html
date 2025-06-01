@@ -1,4 +1,3 @@
-<!-- deposit-requests.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,7 +84,6 @@
           return;
         }
 
-        // Convert to array and sort by createdAt (newest first)
         const deposits = depositsSnapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .sort((a, b) => {
