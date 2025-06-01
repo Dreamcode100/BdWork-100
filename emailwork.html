@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Email Credential Form</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+  <main class="max-w-xl mx-auto px-4 py-10">
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+      <h2 class="text-2xl font-semibold mb-4">📧 Submit Email Credentials</h2>
+      
+      <!-- Balance Display -->
+      <p id="userBalance" class="text-lg sm:text-xl font-bold text-green-600 mb-4">৳0</p>
+      
+      <form id="emailForm" class="space-y-4">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+          <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-200" />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Email Password</label>
+          <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-200" />
+        </div>
+        <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-md hover:bg-indigo-700 transition">
+          Submit
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
+      authDomain: "bdwork-346d3.firebaseapp.com",
+      projectId: "bdwork-346d3",
+      storageBucket: "bdwork-346d3.appspot.com",
+      messagingSenderId: "900963179093",
+      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
+      measurementId: "G-FM1YJ8E5GK"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, addDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUserData = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          currentUserData = { uid: user.uid, ...data };
+          document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data:", err);
+      }
+    });
+
+    const emailForm = document.getElementById("emailForm");
+
+    emailForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        alert("Please fill in both fields.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "emailCredentials"), {
+          email: email,
+          password: password,
+          submittedAt: serverTimestamp(),
+          userId: currentUserData?.uid || null
+        });
+
+        alert("Submitted successfully!");
+        emailForm.reset();
+      } catch (error) {
+        console.error("Error adding document:", error);
+        alert("Failed to submit. Try again.");
+      }
+    });
+  </script>
+</body>
+</html>
