@@ -23,8 +23,9 @@
       </div>
 
       <!-- Account Status Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700">🔆</p>
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-center items-center">
+        <p class="text-sm text-gray-500 mb-1">Account Status</p>
+        <p id="accountStatus" class="text-lg font-semibold text-gray-700">Checking...</p>
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -139,14 +140,20 @@
           document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
           document.getElementById("userReferCode").value = user.uid;
 
-          // Show total refers count
           const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          // Show account status
-          const isPro = data.proActive === true;
-          document.getElementById("accountStatus").innerText = isPro ? "Pro Account" : "Regular Account";
+          // Account Status Check
+          const proActive = data.proActive === true;
+          const expiry = data.proExpiryTimestamp?.toDate?.();
+          const now = new Date();
+
+          if (proActive && expiry && expiry > now) {
+            document.getElementById("accountStatus").innerText = "🌟 Pro Account";
+          } else {
+            document.getElementById("accountStatus").innerText = "🧑 Regular Account";
+          }
         }
       } catch (err) {
         alert("Failed to load user data: " + err.message);
