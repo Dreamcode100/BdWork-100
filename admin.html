@@ -117,7 +117,8 @@
       collection,
       getDocs,
       doc,
-      updateDoc
+      updateDoc,
+      getDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -149,6 +150,7 @@
       } else {
         loadTotalUsersCount();
         loadUsers();
+        loadDepositRequests();
       }
     });
 
@@ -197,9 +199,6 @@
       }
     }
 
-    // Deposit Requests Section
-    const depositsTableBody = document.getElementById("depositRequestsTableBody");
-
     async function loadDepositRequests() {
       try {
         const depositsCol = collection(db, "deposits");
@@ -211,12 +210,22 @@
         }
 
         let rowsHtml = "";
-        depositsSnapshot.forEach((docSnap) => {
+        for (const docSnap of depositsSnapshot.docs) {
           const deposit = docSnap.data();
           const depositId = docSnap.id;
+
+          // Fetch email from users collection using userId
+          let userEmail = "Unknown";
+          if (deposit.userId) {
+            const userDoc = await getDoc(doc(db, "users", deposit.userId));
+            if (userDoc.exists()) {
+              userEmail = userDoc.data().email || "Unknown";
+            }
+          }
+
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
-              <td class="p-3 border border-gray-300">${deposit.userId}</td>
+              <td class="p-3 border border-gray-300">${userEmail}</td>
               <td class="p-3 border border-gray-300">${deposit.amount}</td>
               <td class="p-3 border border-gray-300">${deposit.method}</td>
               <td class="p-3 border border-gray-300 text-center">
@@ -236,7 +245,7 @@
               </td>
             </tr>
           `;
-        });
+        }
 
         depositsTableBody.innerHTML = rowsHtml;
       } catch (error) {
@@ -245,7 +254,7 @@
       }
     }
 
-    async function updateDepositStatus(depositId, status) {
+    window.updateDepositStatus = async function(depositId, status) {
       const confirmAction = confirm(`Are you sure you want to mark this deposit as ${status}?`);
       if (!confirmAction) return;
 
@@ -257,9 +266,7 @@
         console.error("Error updating deposit status:", error);
         alert("Failed to update deposit status.");
       }
-    }
-
-    loadDepositRequests();
+    };
   </script>
 </body>
 </html>
