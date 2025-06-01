@@ -24,7 +24,7 @@
       
       <!-- Account Status Section -->
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p id="accountStatus"></p>
+        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700"></p>
       </div>
 
       <!-- Pro Account Section -->
@@ -177,146 +177,160 @@
             document.getElementById("proValidity").innerText = "-";
           }
 
-          // Pro Account Status and expiry check
+          // Pro Account Status
           const isPro = data.isPro === true;
-          let proActive = false;
+          document.getElementById("isProStatus").innerText = isPro ? "Yes" : "No";
 
           if (isPro && data.proExpiryTimestamp) {
             const expiryDate = data.proExpiryTimestamp.toDate
               ? data.proExpiryTimestamp.toDate()
               : new Date(data.proExpiryTimestamp);
-
-            const now = new Date();
-
-            if (expiryDate > now) {
-              proActive = true;
-              document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
-            } else {
-              // Pro Account expired - update Firestore and local data
-              document.getElementById("proExpiryDate").innerText = "-";
-
-              // Update Firestore to mark isPro false
-              await updateDoc(userDocRef, { isPro: false });
-              currentUserData.isPro = false;
-            }
+            document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
           } else {
             document.getElementById("proExpiryDate").innerText = "-";
           }
 
-          document.getElementById("isProStatus").innerText = proActive ? "Yes" : "No";
+          // Set account status text
+          const accountStatusElem = document.getElementById("accountStatus");
+          if (isPro) {
+            accountStatusElem.innerText = "Pro Account";
+            accountStatusElem.classList.remove("text-gray-700");
+            accountStatusElem.classList.add("text-blue-700", "font-bold");
+          } else {
+            accountStatusElem.innerText = "Regular Account";
+            accountStatusElem.classList.remove("text-blue-700", "font-bold");
+            accountStatusElem.classList.add("text-gray-700");
+          }
 
+          // Disable button if already Pro
           const activateBtn = document.getElementById("activateProBtn");
-          if (proActive) {
+          if (isPro) {
             activateBtn.disabled = true;
             activateBtn.innerText = "Pro Account Active";
           } else {
             activateBtn.disabled = false;
             activateBtn.innerText = "Activate Pro Account";
           }
-        } else {
-          alert("User data not found.");
-          await signOut(auth);
-          window.location.href = "login.html";
         }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        alert("Failed to load user data.");
+      } catch (err) {
+        alert("Failed to load user data: " + err.message);
       }
     });
 
-    // Activate Pro Account function
-    async function activateProAccount() {
-      if (!currentUserData || !proSettings) {
-        alert("User data or Pro settings not loaded yet.");
+    window.activateProAccount = async function () {
+      if (!currentUserData || !proSettings) return alert("Data not loaded yet. Try again.");
+
+      if (currentUserData.isPro) {
+        alert("You already have an active Pro Account.");
         return;
       }
 
       const cost = proSettings.activationCost || 0;
-      if ((currentUserData.balance || 0) < cost) {
-        alert("Insufficient balance to activate Pro Account.");
+      const validityDays = proSettings.validity || 0;
+      const currentBalance = currentUserData.balance || 0;
+
+      if (currentBalance < cost) {
+        alert(`Insufficient balance. You need ৳${cost} to activate Pro Account.`);
         return;
       }
 
-      const userDocRef = doc(db, "users", currentUserData.uid);
-      const now = new Date();
-      const validityDays = proSettings.validity || 0;
-      const expiryDate = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
-
       try {
-        // Deduct balance and activate pro account with expiry timestamp
+        // Calculate expiry timestamp: now + validityDays
+        const now = new Date();
+        const expiryDate = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
+        const expiryTimestamp = Timestamp.fromDate(expiryDate);
+
+        // Update user doc in Firestore
+        const userDocRef = doc(db, "users", currentUserData.uid);
         await updateDoc(userDocRef, {
-          balance: (currentUserData.balance || 0) - cost,
           isPro: true,
-          proExpiryTimestamp: Timestamp.fromDate(expiryDate)
+          proExpiryTimestamp: expiryTimestamp,
+          balance: currentBalance - cost
         });
 
-        // Reload user data to update UI
-        alert(`Pro Account activated! Valid till: ${expiryDate.toLocaleDateString()}`);
-        window.location.reload();
+        // Update currentUserData and UI
+        currentUserData.isPro = true;
+        currentUserData.proExpiryTimestamp = expiryTimestamp;
+        currentUserData.balance = currentBalance - cost;
 
-      } catch (error) {
-        console.error("Failed to activate Pro Account:", error);
-        alert("Activation failed. Please try again.");
-      }
-    }
+        document.getElementById("isProStatus").innerText = "Yes";
+        document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+        document.getElementById("userBalance").innerText = `৳${currentUserData.balance}`;
 
-    // Withdraw function (unchanged, can add validations if needed)
-    async function withdraw() {
-      if (!currentUserData) {
-        alert("User data not loaded.");
-        return;
-      }
-      const method = document.getElementById("withdrawMethod").value;
-      const amount = parseFloat(document.getElementById("withdrawAmount").value);
-      const address = document.getElementById("withdrawAddress").value.trim();
+        // Update account status text on activation
+        const accountStatusElem = document.getElementById("accountStatus");
+        accountStatusElem.innerText = "Pro Account";
+        accountStatusElem.classList.remove("text-gray-700");
+        accountStatusElem.classList.add("text-blue-700", "font-bold");
 
-      if (!method || !amount || amount <= 0 || !address) {
-        alert("Please fill all withdrawal details correctly.");
-        return;
+        // Disable button & change text
+        const activateBtn = document.getElementById("activateProBtn");
+        activateBtn.disabled = true;
+        activateBtn.innerText = "Pro Account Active";
+
+        alert("Congratulations! Your Pro Account is now active.");
+      } catch (err) {
+        alert("Activation failed: " + err.message);
       }
-      if ((currentUserData.balance || 0) < amount) {
-        alert("Insufficient balance.");
-        return;
-      }
+    };
+
+    window.withdraw = async function () {
+      const amountInput = document.getElementById("withdrawAmount");
+      const methodInput = document.getElementById("withdrawMethod");
+      const addressInput = document.getElementById("withdrawAddress");
+
+      const amount = parseFloat(amountInput.value);
+      const method = methodInput.value.trim();
+      const address = addressInput.value.trim();
+
+      if (isNaN(amount) || amount <= 0) return alert("Enter valid amount.");
+      if (!method) return alert("Please select a withdrawal method.");
+      if (!address) return alert("Please enter number or wallet address.");
+      if (!currentUserData) return alert("User data not loaded yet.");
+
+      const currentBalance = currentUserData.balance || 0;
+      if (amount > currentBalance) return alert("Insufficient balance.");
 
       try {
-        const withdrawRequest = {
+        await addDoc(collection(db, "withdraws"), {
           uid: currentUserData.uid,
-          method,
-          amount,
-          address,
-          status: "Pending",
-          requestedAt: Timestamp.now(),
-        };
-        await addDoc(collection(db, "withdrawals"), withdrawRequest);
+          userId: currentUserData.uid,
+          userEmail: currentUserData.email,
+          amount: amount,
+          method: method,
+          address: address,
+          timestamp: Timestamp.now(),
+          status: "pending"
+        });
 
-        // Deduct balance locally and in Firestore
         const userDocRef = doc(db, "users", currentUserData.uid);
-        await updateDoc(userDocRef, { balance: (currentUserData.balance || 0) - amount });
+        const newBalance = currentBalance - amount;
+        await updateDoc(userDocRef, { balance: newBalance });
+        currentUserData.balance = newBalance;
 
-        alert("Withdrawal request sent.");
+        document.getElementById("userBalance").innerText = `৳${newBalance}`;
+        amountInput.value = "";
+        methodInput.value = "";
+        addressInput.value = "";
+
+        alert(`Withdraw request of ৳${amount} submitted via ${method}!`);
         window.location.reload();
-      } catch (error) {
-        console.error("Withdrawal failed:", error);
-        alert("Failed to submit withdrawal request.");
+      } catch (err) {
+        alert("Error: " + err.message);
       }
-    }
+    };
 
-    // Logout function
-    function logout() {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      });
-    }
+    window.logout = async function () {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
 
-    // Copy refer code function
-    function copyReferCode() {
-      const referInput = document.getElementById("userReferCode");
-      referInput.select();
-      referInput.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(referInput.value);
-      alert("Refer code copied to clipboard!");
-    }
+    window.copyReferCode = function () {
+      const input = document.getElementById("userReferCode");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(() => alert("Refer code copied!"));
+    };
   </script>
 </body>
 </html>
