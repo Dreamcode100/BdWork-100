@@ -23,8 +23,8 @@
       </div>
 
       <!-- Account Status Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700">🔆</p>
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700">🔆</p>
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -50,10 +50,10 @@
     </section>
 
     <!-- Pro Account Section Button -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <a href="pro-account.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
-        Go to Pro Account Page →
-      </a>
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <a href="pro-account.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+        Go to Pro Account Page →
+      </a>
     </section>
 
     <!-- Withdraw Section -->
@@ -144,17 +144,14 @@
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          // Account status text: Check if Pro Account active
-          if (data.proActive === true) {
-            document.getElementById("accountStatus").innerText = "Pro Account";
-          } else {
-            document.getElementById("accountStatus").innerText = "Regular Account";
-          }
-        }
-      } catch (err) {
-        alert("Failed to load user data: " + err.message);
-      }
-    });
+          // Show account status
+          const isPro = data.proActive === true;
+          document.getElementById("accountStatus").innerText = isPro ? "Pro Account" : "Regular Account";
+        }
+      } catch (err) {
+        alert("Failed to load user data: " + err.message);
+      }
+    });
 
     window.withdraw = async function () {
       const amountInput = document.getElementById("withdrawAmount");
