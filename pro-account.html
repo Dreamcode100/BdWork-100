@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pro Account Management</title>
+  <title>Pro Account</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
-  <main class="max-w-3xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-10">💎 Manage Your Pro Account</h1>
-
+  <main class="max-w-4xl mx-auto px-4 py-8">
     <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-between">
       <div>
+        <h2 class="text-xl font-semibold mb-4 text-blue-700">💎 Pro Account Status</h2>
         <p><strong>Active:</strong> <span id="isProStatus">Loading...</span></p>
         <p><strong>Expires On:</strong> <span id="proExpiryDate">-</span></p>
-        <hr class="my-4" />
+        <hr class="my-3" />
         <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Plan</h3>
         <ul class="list-disc list-inside space-y-1 text-gray-700 mb-6">
           <li>Activation Cost: ৳<span id="proActivationCost">...</span></li>
@@ -32,21 +30,13 @@
       >
         Activate Pro Account
       </button>
-
-      <div class="mt-8 text-center">
-        <a href="dashboard.html" class="text-blue-600 hover:underline">
-          ← Back to Dashboard
-        </a>
-      </div>
     </div>
   </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, updateDoc, Timestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
@@ -68,63 +58,69 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "login.html";
 
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (!userDoc.exists()) {
-        alert("User data not found!");
-        return;
-      }
-      const data = userDoc.data();
-      currentUserData = { uid: user.uid, ...data };
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) throw new Error("User data not found");
+        const data = userDoc.data();
+        currentUserData = { uid: user.uid, ...data };
 
-      // Load Pro Account Settings
-      const proSettingsDocRef = doc(db, "settings", "proAccount");
-      const proSettingsDocSnap = await getDoc(proSettingsDocRef);
-      if (proSettingsDocSnap.exists()) {
-        proSettings = proSettingsDocSnap.data();
-        document.getElementById("proActivationCost").innerText = proSettings.activationCost ?? "-";
-        document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus ?? "-";
-        document.getElementById("proValidity").innerText = proSettings.validity ?? "-";
-      } else {
-        proSettings = null;
-        document.getElementById("proActivationCost").innerText = "-";
-        document.getElementById("proDailyBonus").innerText = "-";
-        document.getElementById("proValidity").innerText = "-";
-      }
+        // Load Pro Account Settings
+        const proSettingsDocRef = doc(db, "settings", "proAccount");
+        const proSettingsDocSnap = await getDoc(proSettingsDocRef);
+        if (proSettingsDocSnap.exists()) {
+          proSettings = proSettingsDocSnap.data();
 
-      // Check Pro status and expiry
-      let isProActive = false;
-      if (data.isPro && data.proExpiryTimestamp) {
-        const expiryDate = data.proExpiryTimestamp.toDate ? data.proExpiryTimestamp.toDate() : new Date(data.proExpiryTimestamp);
-        const now = new Date();
-
-        if (expiryDate > now) {
-          isProActive = true;
-          document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+          document.getElementById("proActivationCost").innerText = proSettings.activationCost ?? "-";
+          document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus ?? "-";
+          document.getElementById("proValidity").innerText = proSettings.validity ?? "-";
         } else {
-          await updateDoc(userDocRef, { isPro: false, proExpiryTimestamp: null });
-          isProActive = false;
-          document.getElementById("proExpiryDate").innerText = "-";
-          currentUserData.isPro = false;
+          proSettings = null;
+          document.getElementById("proActivationCost").innerText = "-";
+          document.getElementById("proDailyBonus").innerText = "-";
+          document.getElementById("proValidity").innerText = "-";
         }
-      } else {
-        document.getElementById("proExpiryDate").innerText = "-";
-      }
 
-      document.getElementById("isProStatus").innerText = isProActive ? "Yes" : "No";
+        // Check Pro status & expiry
+        let isProActive = false;
+        if (data.isPro === true && data.proExpiryTimestamp) {
+          const expiryDate = data.proExpiryTimestamp.toDate
+            ? data.proExpiryTimestamp.toDate()
+            : new Date(data.proExpiryTimestamp);
+          const now = new Date();
 
-      const activateBtn = document.getElementById("activateProBtn");
-      if (isProActive) {
-        activateBtn.disabled = true;
-        activateBtn.innerText = "Pro Account Active";
-      } else {
-        activateBtn.disabled = false;
-        activateBtn.innerText = "Activate Pro Account";
+          if (expiryDate > now) {
+            isProActive = true;
+            document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+          } else {
+            // Expired: deactivate
+            await updateDoc(userDocRef, { isPro: false, proExpiryTimestamp: null });
+            isProActive = false;
+            document.getElementById("proExpiryDate").innerText = "-";
+            currentUserData.isPro = false;
+          }
+        } else {
+          document.getElementById("proExpiryDate").innerText = "-";
+        }
+
+        document.getElementById("isProStatus").innerText = isProActive ? "Yes" : "No";
+
+        const activateBtn = document.getElementById("activateProBtn");
+        if (isProActive) {
+          activateBtn.disabled = true;
+          activateBtn.innerText = "Pro Account Active";
+        } else {
+          activateBtn.disabled = false;
+          activateBtn.innerText = "Activate Pro Account";
+        }
+
+      } catch (error) {
+        alert("Failed to load Pro Account data: " + error.message);
       }
     });
 
     window.activateProAccount = async function () {
-      if (!currentUserData || !proSettings) return alert("Data not loaded yet.");
+      if (!currentUserData || !proSettings) return alert("Data not loaded yet. Try again.");
 
       const now = new Date();
       if (currentUserData.isPro && currentUserData.proExpiryTimestamp) {
