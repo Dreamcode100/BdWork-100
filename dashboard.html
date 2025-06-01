@@ -23,9 +23,8 @@
       </div>
 
       <!-- Account Status Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-center items-center">
-        <p class="text-sm text-gray-500 mb-1">Account Status</p>
-        <p id="accountStatus" class="text-lg font-semibold text-gray-700">Checking...</p>
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700">🔆</p>
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -51,10 +50,10 @@
     </section>
 
     <!-- Pro Account Section Button -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <a href="pro-account.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
-        Go to Pro Account Page →
-      </a>
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <a href="pro-account.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+        Go to Pro Account Page →
+      </a>
     </section>
 
     <!-- Withdraw Section -->
@@ -140,25 +139,21 @@
           document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
           document.getElementById("userReferCode").value = user.uid;
 
+          // Show total refers count
           const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          // Account Status Check
-          const proActive = data.proActive === true;
-          const expiry = data.proExpiryTimestamp?.toDate?.();
-          const now = new Date();
-
-          if (proActive && expiry && expiry > now) {
-            document.getElementById("accountStatus").innerText = "🌟 Pro Account";
-          } else {
-            document.getElementById("accountStatus").innerText = "🧑 Regular Account";
-          }
-        }
-      } catch (err) {
-        alert("Failed to load user data: " + err.message);
-      }
-    });
+          if (data.isPro === true) {
+  document.getElementById("accountStatus").innerText = "Pro Account";
+} else {
+  document.getElementById("accountStatus").innerText = "Regular Account";
+}
+        }
+      } catch (err) {
+        alert("Failed to load user data: " + err.message);
+      }
+    });
 
     window.withdraw = async function () {
       const amountInput = document.getElementById("withdrawAmount");
