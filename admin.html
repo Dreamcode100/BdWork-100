@@ -1,271 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Panel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col lg:flex-row">
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="w-64 bg-blue-800 text-white min-h-screen p-5 space-y-6 fixed lg:static top-0 left-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-50 shadow-lg">
-    <div class="flex justify-between items-center mb-8">
-      <h2 class="text-2xl font-bold">Admin Panel</h2>
-      <button id="closeSidebar" class="lg:hidden text-white text-2xl">
-        <i class="fas fa-xmark"></i>
-      </button>
-    </div>
-    <nav class="flex flex-col space-y-4 text-sm">
-      <a href="admin.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
-        <i class="fas fa-home"></i><span>Dashboard</span>
-      </a>
-      <a href="admin-tasks.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
-        <i class="fas fa-clipboard-list"></i><span>Task Manage</span>
-      </a>
-      <a href="pro-settings.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
-        <i class="fas fa-clipboard-list"></i><span>Pro Account Manage</span>
-      </a>
-      <a href="#" class="flex items-center space-x-3 bg-blue-700 p-2 rounded transition">
-        <i class="fas fa-users"></i><span>Users</span>
-      </a>
-      <a href="withdraw-requests.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
-        <i class="fas fa-money-check-alt"></i><span>Withdraw Requests</span>
-      </a>
-      <a href="admin-withdraw-history.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
-        <i class="fas fa-clock-rotate-left"></i><span>Withdraw History</span>
-      </a>
-      <button id="logoutBtn" class="flex items-center space-x-3 hover:bg-red-600 p-2 rounded mt-10 transition">
-        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
-      </button>
-    </nav>
-  </aside>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-64 bg-blue-800 text-white min-h-screen p-5 space-y-6 fixed lg:static top-0 left-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 z-50 shadow-lg">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="text-2xl font-bold">Admin Panel</h2>
+      <button id="closeSidebar" class="lg:hidden text-white text-2xl">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+    <nav class="flex flex-col space-y-4 text-sm">
+      <a href="admin.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-home"></i><span>Dashboard</span>
+      </a>
+      <a href="admin-tasks.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-clipboard-list"></i><span>Task Manage</span>
+      </a>
+      <a href="pro-settings.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-clipboard-list"></i><span>Pro Account Manage</span>
+      </a>
+      <a href="#" class="flex items-center space-x-3 bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-users"></i><span>Users</span>
+      </a>
+      <a href="withdraw-requests.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-money-check-alt"></i><span>Withdraw Requests</span>
+      </a>
+      <a href="admin-withdraw-history.html" class="flex items-center space-x-3 hover:bg-blue-700 p-2 rounded transition">
+        <i class="fas fa-clock-rotate-left"></i><span>Withdraw History</span>
+      </a>
+      <button id="logoutBtn" class="flex items-center space-x-3 hover:bg-red-600 p-2 rounded mt-10 transition">
+        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+      </button>
+    </nav>
+  </aside>
 
-  <!-- Overlay -->
-  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden lg:hidden"></div>
+  <!-- Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden lg:hidden"></div>
 
-  <!-- Main Content -->
-  <div class="flex-grow w-full lg:ml-64 min-h-screen flex flex-col">
-    <header class="bg-blue-700 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
-      <div class="flex items-center space-x-4">
-        <button id="openSidebar" class="lg:hidden text-2xl">
-          <i class="fas fa-bars"></i>
-        </button>
-        <h1 class="text-xl font-bold">Admin Panel</h1>
-      </div>
-    </header>
+  <!-- Main Content -->
+  <div class="flex-grow w-full lg:ml-64 min-h-screen flex flex-col">
+    <header class="bg-blue-700 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
+      <div class="flex items-center space-x-4">
+        <button id="openSidebar" class="lg:hidden text-2xl">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h1 class="text-xl font-bold">Admin Panel</h1>
+      </div>
+    </header>
 
-    <main class="p-4 md:p-6 space-y-6 overflow-auto flex-grow">
-      <!-- Total Users Section -->
-      <div class="bg-white shadow rounded p-4">
-        <div class="text-xl font-semibold text-blue-700 mb-2" id="totalUsersCount">Total Users: ...</div>
-      </div>
+    <main class="p-4 md:p-6 space-y-6 overflow-auto flex-grow">
+      <!-- Total Users Section -->
+      <div class="bg-white shadow rounded p-4">
+        <div class="text-xl font-semibold text-blue-700 mb-2" id="totalUsersCount">Total Users: ...</div>
+      </div>
 
-      <!-- Users Table Section -->
-      <div class="bg-white shadow rounded p-4">
-        <div class="overflow-x-auto max-h-[600px]">
-          <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
-            <thead class="bg-gray-100 sticky top-0 z-10">
-              <tr>
-                <th class="p-3 border border-gray-300 text-left">Email</th>
-                <th class="p-3 border border-gray-300 text-left">Balance (৳)</th>
-                <th class="p-3 border border-gray-300 text-left">Role</th>
-                <th class="p-3 border border-gray-300 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <tr><td colspan="4" class="p-4 text-center text-gray-500">Loading users...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <!-- Users Table Section -->
+      <div class="bg-white shadow rounded p-4">
+        <div class="overflow-x-auto max-h-[600px]">
+          <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
+            <thead class="bg-gray-100 sticky top-0 z-10">
+              <tr>
+                <th class="p-3 border border-gray-300 text-left">Email</th>
+                <th class="p-3 border border-gray-300 text-left">Balance (৳)</th>
+                <th class="p-3 border border-gray-300 text-left">Role</th>
+                <th class="p-3 border border-gray-300 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="4" class="p-4 text-center text-gray-500">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      <!-- Deposit Requests Section -->
-      <div class="bg-white shadow rounded p-4">
-        <div class="text-xl font-semibold text-blue-700 mb-2">Deposit Requests</div>
-        <div class="overflow-x-auto max-h-[600px]">
-          <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
-            <thead class="bg-gray-100 sticky top-0 z-10">
-              <tr>
-                <th class="p-3 border border-gray-300 text-left">User Email</th>
-                <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
-                <th class="p-3 border border-gray-300 text-left">Method</th>
-                <th class="p-3 border border-gray-300 text-center">Status</th>
-                <th class="p-3 border border-gray-300 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="depositRequestsTableBody">
-              <!-- Dynamic rows will be added here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-  </div>
+      <!-- Deposit Requests Section -->
+      <div class="bg-white shadow rounded p-4">
+        <div class="text-xl font-semibold text-blue-700 mb-2">Deposit Requests</div>
+        <div class="overflow-x-auto max-h-[600px]">
+          <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
+            <thead class="bg-gray-100 sticky top-0 z-10">
+              <tr>
+                <th class="p-3 border border-gray-300 text-left">User Email</th>
+                <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
+                <th class="p-3 border border-gray-300 text-left">Method</th>
+                <th class="p-3 border border-gray-300 text-center">Status</th>
+                <th class="p-3 border border-gray-300 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="depositRequestsTableBody">
+              <!-- Dynamic rows will be added here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
 
-  <!-- Firebase and Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut,
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      updateDoc,
-      getDoc,
-      increment
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <!-- Firebase + Logic + Sidebar Toggle -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      updateDoc,
+      getDoc,
+      increment
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
-      authDomain: "bdwork-346d3.firebaseapp.com",
-      projectId: "bdwork-346d3",
-      storageBucket: "bdwork-346d3.appspot.com",
-      messagingSenderId: "900963179093",
-      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
-      measurementId: "G-FM1YJ8E5GK"
-    };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
+      authDomain: "bdwork-346d3.firebaseapp.com",
+      projectId: "bdwork-346d3",
+      storageBucket: "bdwork-346d3.appspot.com",
+      messagingSenderId: "900963179093",
+      appId: "1:900963179093:web:81e42d67bb31d603cc92dc",
+      measurementId: "G-FM1YJ8E5GK"
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    const usersTableBody = document.getElementById("usersTableBody");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const totalUsersCountElem = document.getElementById("totalUsersCount");
-    const depositsTableBody = document.getElementById("depositRequestsTableBody");
+    const usersTableBody = document.getElementById("usersTableBody");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const totalUsersCountElem = document.getElementById("totalUsersCount");
+    const depositsTableBody = document.getElementById("depositRequestsTableBody");
 
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "login.html";
-    });
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    });
 
-    onAuthStateChanged(auth, user => {
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        loadTotalUsersCount();
-        loadUsers();
-        loadDepositRequests();
-      }
-    });
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        loadTotalUsersCount();
+        loadUsers();
+        loadDepositRequests();
+      }
+    });
 
-    async function loadTotalUsersCount() {
-      try {
-        const usersCol = collection(db, "users");
-        const usersSnapshot = await getDocs(usersCol);
-        totalUsersCountElem.textContent = `Total Users: ${usersSnapshot.size}`;
-      } catch (err) {
-        totalUsersCountElem.textContent = "Total Users: Error";
-        console.error("Error loading user count:", err);
-      }
-    }
+    async function loadTotalUsersCount() {
+      try {
+        const usersCol = collection(db, "users");
+        const usersSnapshot = await getDocs(usersCol);
+        totalUsersCountElem.textContent = `Total Users: ${usersSnapshot.size}`;
+      } catch (err) {
+        totalUsersCountElem.textContent = "Total Users: Error";
+        console.error("Error loading user count:", err);
+      }
+    }
 
-    async function loadUsers() {
-      try {
-        const usersCol = collection(db, "users");
-        const usersSnapshot = await getDocs(usersCol);
+    async function loadUsers() {
+      try {
+        const usersCol = collection(db, "users");
+        const usersSnapshot = await getDocs(usersCol);
 
-        if (usersSnapshot.empty) {
-          usersTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center">No users found.</td></tr>`;
-          return;
-        }
+        if (usersSnapshot.empty) {
+          usersTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center">No users found.</td></tr>`;
+          return;
+        }
 
-        let rowsHtml = "";
-        usersSnapshot.forEach((docSnap) => {
-          const user = docSnap.data();
-          rowsHtml += `
-            <tr class="hover:bg-gray-50 border-t">
-              <td class="p-3 border border-gray-300 break-words max-w-xs">${user.email || "N/A"}</td>
-              <td class="p-3 border border-gray-300">
-                <input type="number" class="border px-2 py-1 rounded w-full" value="${user.balance || 0}" />
-              </td>
-              <td class="p-3 border border-gray-300">${user.role || "User"}</td>
-              <td class="p-3 border border-gray-300 text-center">
-                <button class="bg-blue-500 text-white px-4 py-1 rounded">Edit</button>
-              </td>
-            </tr>
-          `;
-        });
+        let rowsHtml = "";
+        usersSnapshot.forEach((docSnap) => {
+          const user = docSnap.data();
+          rowsHtml += `
+            <tr class="hover:bg-gray-50 border-t">
+              <td class="p-3 border border-gray-300 break-words max-w-xs">${user.email || "N/A"}</td>
+              <td class="p-3 border border-gray-300">
+                <input type="number" class="border px-2 py-1 rounded w-full" value="${user.balance || 0}" />
+              </td>
+              <td class="p-3 border border-gray-300">${user.role || "User"}</td>
+              <td class="p-3 border border-gray-300 text-center">
+                <button class="bg-blue-500 text-white px-4 py-1 rounded">Edit</button>
+              </td>
+            </tr>
+          `;
+        });
 
-        usersTableBody.innerHTML = rowsHtml;
-      } catch (err) {
-        console.error("Error loading users:", err);
-        usersTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-600">Error loading users</td></tr>`;
-      }
-    }
+        usersTableBody.innerHTML = rowsHtml;
+      } catch (err) {
+        console.error("Error loading users:", err);
+        usersTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-600">Error loading users</td></tr>`;
+      }
+    }
 
-    async function loadDepositRequests() {
-      try {
-        const depositsCol = collection(db, "deposits");
-        const depositsSnapshot = await getDocs(depositsCol);
+    async function loadDepositRequests() {
+      try {
+        const depositsCol = collection(db, "deposits");
+        const depositsSnapshot = await getDocs(depositsCol);
 
-        if (depositsSnapshot.empty) {
-          depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
-          return;
-        }
+        if (depositsSnapshot.empty) {
+          depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
+          return;
+        }
 
-        let rowsHtml = "";
-        for (const docSnap of depositsSnapshot.docs) {
-          const deposit = docSnap.data();
-          const depositId = docSnap.id;
-          const userDoc = await getDoc(doc(db, "users", deposit.userId));
-          const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
+        let rowsHtml = "";
+        for (const docSnap of depositsSnapshot.docs) {
+          const deposit = docSnap.data();
+          const depositId = docSnap.id;
+          const userDoc = await getDoc(doc(db, "users", deposit.userId));
+          const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
 
-          rowsHtml += `
-            <tr class="hover:bg-gray-50 border-t">
-              <td class="p-3 border border-gray-300">${userEmail}</td>
-              <td class="p-3 border border-gray-300">${deposit.amount}</td>
-              <td class="p-3 border border-gray-300">${deposit.method}</td>
-              <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
-              </td>
-              <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? `
-                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
-                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
-                ` : "N/A"}
-              </td>
-            </tr>
-          `;
-        }
+          rowsHtml += `
+            <tr class="hover:bg-gray-50 border-t">
+              <td class="p-3 border border-gray-300">${userEmail}</td>
+              <td class="p-3 border border-gray-300">${deposit.amount}</td>
+              <td class="p-3 border border-gray-300">${deposit.method}</td>
+              <td class="p-3 border border-gray-300 text-center">
+                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
+              </td>
+              <td class="p-3 border border-gray-300 text-center">
+                ${deposit.status === "pending" ? `
+                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
+                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
+                ` : "N/A"}
+              </td>
+            </tr>
+          `;
+        }
 
-        depositsTableBody.innerHTML = rowsHtml;
-      } catch (error) {
-        console.error("Error loading deposit requests:", error);
-        depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
-      }
-    }
+        depositsTableBody.innerHTML = rowsHtml;
+      } catch (error) {
+        console.error("Error loading deposit requests:", error);
+        depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
+      }
+    }
 
-    window.updateDepositStatus = async function (depositId, userId, amount, status) {
-      const confirmAction = confirm(`Are you sure you want to mark this deposit as ${status}?`);
-      if (!confirmAction) return;
+    window.updateDepositStatus = async function (depositId, userId, amount, status) {
+      const confirmAction = confirm(`Are you sure you want to mark this deposit as ${status}?`);
+      if (!confirmAction) return;
 
-      try {
-        const depositRef = doc(db, "deposits", depositId);
-        await updateDoc(depositRef, { status });
+      try {
+        const depositRef = doc(db, "deposits", depositId);
+        await updateDoc(depositRef, { status });
 
-        if (status === "approved") {
-          const userRef = doc(db, "users", userId);
-          await updateDoc(userRef, {
-            balance: increment(amount)
-          });
-        }
+        if (status === "approved") {
+          const userRef = doc(db, "users", userId);
+          await updateDoc(userRef, {
+            balance: increment(amount)
+          });
+        }
 
-        alert(`Deposit ${status} successfully.`);
-        loadDepositRequests();
-        loadUsers();
-      } catch (error) {
-        console.error("Error updating deposit status:", error);
-        alert("Failed to update deposit status.");
-      }
-    };
-  </script>
+        alert(`Deposit ${status} successfully.`);
+        loadDepositRequests();
+        loadUsers();
+      } catch (error) {
+        console.error("Error updating deposit status:", error);
+        alert("Failed to update deposit status.");
+      }
+    };
+
+    // Sidebar toggle
+    document.getElementById("openSidebar").addEventListener("click", () => {
+      document.getElementById("sidebar").classList.remove("-translate-x-full");
+      document.getElementById("overlay").classList.remove("hidden");
+    });
+    document.getElementById("closeSidebar").addEventListener("click", () => {
+      document.getElementById("sidebar").classList.add("-translate-x-full");
+      document.getElementById("overlay").classList.add("hidden");
+    });
+    document.getElementById("overlay").addEventListener("click", () => {
+      document.getElementById("sidebar").classList.add("-translate-x-full");
+      document.getElementById("overlay").classList.add("hidden");
+    });
+  </script>
 </body>
 </html>
