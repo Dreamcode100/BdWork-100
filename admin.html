@@ -80,27 +80,6 @@
           </table>
         </div>
       </div>
-
-      <!-- Deposit Requests Section -->
-      <div class="bg-white shadow rounded p-4">
-        <div class="text-xl font-semibold text-blue-700 mb-2">Deposit Requests</div>
-        <div class="overflow-x-auto max-h-[600px]">
-          <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
-            <thead class="bg-gray-100 sticky top-0 z-10">
-              <tr>
-                <th class="p-3 border border-gray-300 text-left">User Email</th>
-                <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
-                <th class="p-3 border border-gray-300 text-left">Method</th>
-                <th class="p-3 border border-gray-300 text-center">Status</th>
-                <th class="p-3 border border-gray-300 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="depositRequestsTableBody">
-              <!-- Dynamic rows will be added here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
     </main>
   </div>
 
@@ -117,9 +96,7 @@
       collection,
       getDocs,
       doc,
-      updateDoc,
-      getDoc,
-      increment
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -139,7 +116,6 @@
     const usersTableBody = document.getElementById("usersTableBody");
     const logoutBtn = document.getElementById("logoutBtn");
     const totalUsersCountElem = document.getElementById("totalUsersCount");
-    const depositsTableBody = document.getElementById("depositRequestsTableBody");
 
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
@@ -152,7 +128,6 @@
       } else {
         loadTotalUsersCount();
         loadUsers();
-        loadDepositRequests();
       }
     });
 
@@ -184,88 +159,73 @@
             <tr class="hover:bg-gray-50 border-t">
               <td class="p-3 border border-gray-300 break-words max-w-xs">${user.email || "N/A"}</td>
               <td class="p-3 border border-gray-300">
-                <input type="number" class="border px-2 py-1 rounded w-20" value="${user.balance || 0}" />
+                <input type="number" min="0" step="0.01" value="${user.balance || 0}" class="balance-input border rounded px-2 py-1 w-28 focus:outline-none focus:ring-2 focus:ring-blue-400" data-uid="${docSnap.id}" />
               </td>
-              <td class="p-3 border border-gray-300">${user.role || "User"}</td>
+              <td class="p-3 border border-gray-300">
+                <select class="role-select border rounded px-2 py-1 w-28 focus:outline-none focus:ring-2 focus:ring-blue-400" data-uid="${docSnap.id}">
+                  <option value="user" ${user.role === "user" ? "selected" : ""}>User</option>
+                  <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
+                </select>
+              </td>
               <td class="p-3 border border-gray-300 text-center">
-                <button class="bg-blue-500 text-white px-4 py-1 rounded">Update</button>
+                <button class="update-balance-btn bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition" data-uid="${docSnap.id}">
+                  Update
+                </button>
               </td>
             </tr>
           `;
         });
 
         usersTableBody.innerHTML = rowsHtml;
-      } catch (err) {
-        console.error("Error loading users:", err);
-        usersTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-600">Error loading users</td></tr>`;
-      }
-    }
 
-    async function loadDepositRequests() {
-      try {
-        const depositsCol = collection(db, "deposits");
-        const depositsSnapshot = await getDocs(depositsCol);
+        document.querySelectorAll(".update-balance-btn").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const uid = e.target.getAttribute("data-uid");
+            const input = document.querySelector(`.balance-input[data-uid="${uid}"]`);
+            const select = document.querySelector(`.role-select[data-uid="${uid}"]`);
+            const newBalance = parseFloat(input.value);
+            const newRole = select.value;
 
-        if (depositsSnapshot.empty) {
-          depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
-          return;
-        }
+            if (isNaN(newBalance) || newBalance < 0) {
+              alert("Please enter a valid non-negative balance.");
+              return;
+            }
 
-        let rowsHtml = "";
-        for (const docSnap of depositsSnapshot.docs) {
-          const deposit = docSnap.data();
-          const depositId = docSnap.id;
-          const userDoc = await getDoc(doc(db, "users", deposit.userId));
-          const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
+            await updateDoc(doc(db, "users", uid), {
+              balance: newBalance,
+              role: newRole
+            });
 
-          rowsHtml += `
-            <tr class="hover:bg-gray-50 border-t">
-              <td class="p-3 border border-gray-300">${userEmail}</td>
-              <td class="p-3 border border-gray-300">${deposit.amount}</td>
-              <td class="p-3 border border-gray-300">${deposit.method}</td>
-              <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
-              </td>
-              <td class="p-3 border border-gray-300 text-center">
-                ${deposit.status === "pending" ? `
-                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
-                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
-                ` : "N/A"}
-              </td>
-            </tr>
-          `;
-        }
-
-        depositsTableBody.innerHTML = rowsHtml;
-      } catch (error) {
-        console.error("Error loading deposit requests:", error);
-        depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
-      }
-    }
-
-    window.updateDepositStatus = async function (depositId, userId, amount, status) {
-      const confirmAction = confirm(`Are you sure you want to mark this deposit as ${status}?`);
-      if (!confirmAction) return;
-
-      try {
-        const depositRef = doc(db, "deposits", depositId);
-        await updateDoc(depositRef, { status });
-
-        if (status === "approved") {
-          const userRef = doc(db, "users", userId);
-          await updateDoc(userRef, {
-            balance: increment(amount)
+            alert("Updated successfully.");
           });
-        }
+        });
 
-        alert(`Deposit ${status} successfully.`);
-        loadDepositRequests();
-        loadUsers();
       } catch (error) {
-        console.error("Error updating deposit status:", error);
-        alert("Failed to update deposit status.");
+        usersTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-600">Error loading users: ${error.message}</td></tr>`;
+        console.error("Error loading users:", error);
       }
-    };
+    }
+
+    // Sidebar toggle
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const openSidebarBtn = document.getElementById("openSidebar");
+    const closeSidebarBtn = document.getElementById("closeSidebar");
+
+    openSidebarBtn.addEventListener("click", () => {
+      sidebar.classList.remove("-translate-x-full");
+      overlay.classList.remove("hidden");
+    });
+
+    closeSidebarBtn.addEventListener("click", () => {
+      sidebar.classList.add("-translate-x-full");
+      overlay.classList.add("hidden");
+    });
+
+    overlay.addEventListener("click", () => {
+      sidebar.classList.add("-translate-x-full");
+      overlay.classList.add("hidden");
+    });
   </script>
 </body>
 </html>
