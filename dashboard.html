@@ -172,11 +172,14 @@
 
       try {
         await addDoc(collection(db, "deposits"), {
-          userId: currentUserData.uid,
-          method,
-          amount,
-          status: "pending",
-          timestamp: new Date()
+          uid: currentUserData.uid,
+          userId: currentUserData.uid,
+          userEmail: currentUserData.email,
+          amount: amount,
+          method: method,
+          address: address,
+          timestamp: Timestamp.now(),
+          status: "pending"
         });
         alert("Deposit request submitted successfully!");
         document.getElementById("depositForm").reset();
