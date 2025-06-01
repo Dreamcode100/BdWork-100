@@ -13,7 +13,7 @@
     <h1 class="text-3xl font-bold text-center mb-10">👋 Welcome to Your Dashboard</h1>
 
     <!-- User Info Section -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
         <p class="text-sm text-gray-500 mb-1">Email</p>
         <p id="userEmail" class="text-xl font-semibold text-gray-800">Loading...</p>
@@ -21,47 +21,23 @@
         <p class="text-sm text-gray-500 mt-6 mb-1">Balance</p>
         <p id="userBalance" class="text-xl font-bold text-green-600">৳0</p>
       </div>
-      
+
       <!-- Account Status Section -->
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700"></p>
+        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700">Regular Account</p>
       </div>
+    </section>
 
-      <!-- Pro Account Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-between">
-        <div>
-          <h2 class="text-xl font-semibold mb-4 text-blue-700">💎 Pro Account Status</h2>
-          <p><strong>Active:</strong> <span id="isProStatus">Loading...</span></p>
-          <p><strong>Expires On:</strong> <span id="proExpiryDate">-</span></p>
-          <hr class="my-3" />
-          <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Plan</h3>
-          <ul class="list-disc list-inside space-y-1 text-gray-700 mb-6">
-            <li>Activation Cost: ৳<span id="proActivationCost">...</span></li>
-            <li>Daily Bonus: ৳<span id="proDailyBonus">...</span></li>
-            <li>Validity: <span id="proValidity">...</span> days</li>
-          </ul>
-        </div>
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <p class="text-sm text-gray-500 mb-1">Total Refers</p>
+      <p id="totalRefers" class="text-xl font-semibold text-gray-800">0</p>
 
-        <button
-          id="activateProBtn"
-          onclick="activateProAccount()"
-          class="bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Activate Pro Account
+      <p class="text-sm text-gray-500 mt-6 mb-2">Your Refer Code</p>
+      <div class="flex items-center gap-3">
+        <input id="userReferCode" readonly class="text-lg font-mono font-semibold text-blue-800 bg-blue-50 px-3 py-2 rounded w-full border border-blue-200" />
+        <button onclick="copyReferCode()" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm transition">
+          Copy
         </button>
-      </div>
-
-      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <p class="text-sm text-gray-500 mb-1">Total Refers</p>
-        <p id="totalRefers" class="text-xl font-semibold text-gray-800">0</p>
-
-        <p class="text-sm text-gray-500 mt-6 mb-2">Your Refer Code</p>
-        <div class="flex items-center gap-3">
-          <input id="userReferCode" readonly class="text-lg font-mono font-semibold text-blue-800 bg-blue-50 px-3 py-2 rounded w-full border border-blue-200" />
-          <button onclick="copyReferCode()" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm transition">
-            Copy
-          </button>
-        </div>
       </div>
     </section>
 
@@ -83,7 +59,7 @@
           <option value="Nagad">Nagad</option>
           <option value="USDT">USDT</option>
         </select>
-        
+
         <input
           id="withdrawAmount"
           type="number"
@@ -134,14 +110,13 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, Timestamp
+      getFirestore, doc, getDoc, collection, query, where, getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     let currentUserData = null;
-    let proSettings = null;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "login.html";
@@ -162,131 +137,17 @@
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          // Load Pro Account Settings from settings/proAccount
-          const proSettingsDocRef = doc(db, "settings", "proAccount");
-          const proSettingsDocSnap = await getDoc(proSettingsDocRef);
-          if (proSettingsDocSnap.exists()) {
-            proSettings = proSettingsDocSnap.data();
-            document.getElementById("proActivationCost").innerText = proSettings.activationCost ?? "-";
-            document.getElementById("proDailyBonus").innerText = proSettings.dailyBonus ?? "-";
-            document.getElementById("proValidity").innerText = proSettings.validity ?? "-";
+          // Account status text: Check if Pro Account active
+          if (data.proActive === true) {
+            document.getElementById("accountStatus").innerText = "Pro Account";
           } else {
-            proSettings = null;
-            document.getElementById("proActivationCost").innerText = "-";
-            document.getElementById("proDailyBonus").innerText = "-";
-            document.getElementById("proValidity").innerText = "-";
-          }
-
-          // Check if Pro Account is active and not expired
-          let isProActive = false;
-          if (data.isPro === true && data.proExpiryTimestamp) {
-            const expiryDate = data.proExpiryTimestamp.toDate
-              ? data.proExpiryTimestamp.toDate()
-              : new Date(data.proExpiryTimestamp);
-            const now = new Date();
-
-            if (expiryDate > now) {
-              isProActive = true;
-              document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
-            } else {
-              // Pro expired - update Firestore to deactivate
-              await updateDoc(userDocRef, { isPro: false, proExpiryTimestamp: null });
-              isProActive = false;
-              document.getElementById("proExpiryDate").innerText = "-";
-              currentUserData.isPro = false; // sync local
-            }
-          } else {
-            document.getElementById("proExpiryDate").innerText = "-";
-          }
-
-          document.getElementById("isProStatus").innerText = isProActive ? "Yes" : "No";
-
-          // Set account status text
-          const accountStatusElem = document.getElementById("accountStatus");
-          const activateBtn = document.getElementById("activateProBtn");
-
-          if (isProActive) {
-            accountStatusElem.innerText = "Pro Account";
-            accountStatusElem.classList.remove("text-gray-700");
-            accountStatusElem.classList.add("text-blue-700", "font-bold");
-
-            activateBtn.disabled = true;
-            activateBtn.innerText = "Pro Account Active";
-          } else {
-            accountStatusElem.innerText = "Regular Account";
-            accountStatusElem.classList.remove("text-blue-700", "font-bold");
-            accountStatusElem.classList.add("text-gray-700");
-
-            activateBtn.disabled = false;
-            activateBtn.innerText = "Activate Pro Account";
+            document.getElementById("accountStatus").innerText = "Regular Account";
           }
         }
       } catch (err) {
         alert("Failed to load user data: " + err.message);
       }
     });
-
-    window.activateProAccount = async function () {
-      if (!currentUserData || !proSettings) return alert("Data not loaded yet. Try again.");
-
-      // Check if current pro status is active & expiry not passed
-      const now = new Date();
-      if (currentUserData.isPro && currentUserData.proExpiryTimestamp) {
-        const expiryDate = currentUserData.proExpiryTimestamp.toDate
-          ? currentUserData.proExpiryTimestamp.toDate()
-          : new Date(currentUserData.proExpiryTimestamp);
-
-        if (expiryDate > now) {
-          alert("You already have an active Pro Account.");
-          return;
-        }
-      }
-
-      const cost = proSettings.activationCost || 0;
-      const validityDays = proSettings.validity || 0;
-      const currentBalance = currentUserData.balance || 0;
-
-      if (currentBalance < cost) {
-        alert(`Insufficient balance. You need ৳${cost} to activate Pro Account.`);
-        return;
-      }
-
-      try {
-        // Calculate expiry timestamp: now + validityDays
-        const expiryDate = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
-        const expiryTimestamp = Timestamp.fromDate(expiryDate);
-
-        // Deduct balance & update pro account fields in Firestore
-        const userDocRef = doc(db, "users", currentUserData.uid);
-        await updateDoc(userDocRef, {
-          balance: currentBalance - cost,
-          isPro: true,
-          proExpiryTimestamp: expiryTimestamp,
-        });
-
-        // Update local data & UI
-        currentUserData.balance -= cost;
-        currentUserData.isPro = true;
-        currentUserData.proExpiryTimestamp = expiryTimestamp;
-
-        document.getElementById("userBalance").innerText = `৳${currentUserData.balance}`;
-        document.getElementById("isProStatus").innerText = "Yes";
-        document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
-
-        const accountStatusElem = document.getElementById("accountStatus");
-        accountStatusElem.innerText = "Pro Account";
-        accountStatusElem.classList.remove("text-gray-700");
-        accountStatusElem.classList.add("text-blue-700", "font-bold");
-
-        const activateBtn = document.getElementById("activateProBtn");
-        activateBtn.disabled = true;
-        activateBtn.innerText = "Pro Account Active";
-
-        alert("Pro Account activated successfully!");
-      } catch (error) {
-        alert("Failed to activate Pro Account: " + error.message);
-      }
-    };
 
     // Copy refer code
     window.copyReferCode = () => {
