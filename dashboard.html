@@ -56,6 +56,28 @@
       </a>
     </section>
 
+    <!-- Deposit Form Section -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">💰 Deposit Balance</h2>
+      <form id="depositForm" class="space-y-4">
+        <div>
+          <label for="depositMethod" class="block text-sm font-medium text-gray-600 mb-1">Select Method</label>
+          <select id="depositMethod" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700">
+            <option value="bKash">bKash</option>
+            <option value="Nagad">Nagad</option>
+            <option value="USDT">USDT</option>
+          </select>
+        </div>
+        <div>
+          <label for="depositAmount" class="block text-sm font-medium text-gray-600 mb-1">Amount</label>
+          <input type="number" id="depositAmount" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Enter amount..." min="0" required>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition">
+          Submit Deposit Request
+        </button>
+      </form>
+    </section>
+
     <!-- Withdraw Redirect Section -->
     <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
       <h2 class="text-xl font-semibold mb-4">💸 Withdraw Balance</h2>
@@ -91,7 +113,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, collection, query, where, getDocs
+      getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
@@ -136,6 +158,32 @@
       input.setSelectionRange(0, 99999);
       navigator.clipboard.writeText(input.value).then(() => alert("Refer code copied!"));
     };
+
+    // Deposit Form Submit
+    document.getElementById("depositForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const method = document.getElementById("depositMethod").value;
+      const amount = parseFloat(document.getElementById("depositAmount").value);
+
+      if (!method || isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid method and amount.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "deposits"), {
+          userId: currentUserData.uid,
+          method,
+          amount,
+          status: "pending",
+          timestamp: new Date()
+        });
+        alert("Deposit request submitted successfully!");
+        document.getElementById("depositForm").reset();
+      } catch (err) {
+        alert("Error submitting deposit: " + err.message);
+      }
+    });
   </script>
 </body>
 </html>
