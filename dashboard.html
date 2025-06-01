@@ -13,13 +13,27 @@
     <h1 class="text-3xl font-bold text-center mb-10">👋 Welcome to Your Dashboard</h1>
 
     <!-- User Info Section -->
-    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
         <p class="text-sm text-gray-500 mb-1">Email</p>
         <p id="userEmail" class="text-xl font-semibold text-gray-800">Loading...</p>
 
         <p class="text-sm text-gray-500 mt-6 mb-1">Balance</p>
         <p id="userBalance" class="text-xl font-bold text-green-600">৳0</p>
+      </div>
+
+      <!-- Pro Account Section -->
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-xl font-semibold mb-4 text-blue-700">💎 Pro Account Status</h2>
+        <p><strong>Active:</strong> <span id="isProStatus">Loading...</span></p>
+        <p><strong>Expires On:</strong> <span id="proExpiryDate">-</span></p>
+        <hr class="my-3" />
+        <h3 class="font-semibold text-lg text-blue-600 mb-2">Current Pro Account Settings</h3>
+        <ul class="list-disc list-inside space-y-1 text-gray-700">
+          <li>Activation Cost: ৳<span id="proActivationCost">...</span></li>
+          <li>Daily Bonus: ৳<span id="proDailyBonus">...</span></li>
+          <li>Validity: <span id="proValidity">...</span> days</li>
+        </ul>
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -122,13 +136,42 @@
         if (userDoc.exists()) {
           const data = userDoc.data();
           currentUserData = { uid: user.uid, ...data };
+
           document.getElementById("userEmail").innerText = data.email;
           document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
           document.getElementById("userReferCode").value = user.uid;
 
+          // Show total refers count
           const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
+
+          // Pro Account Status
+          const isPro = data.isPro === true;
+          document.getElementById("isProStatus").innerText = isPro ? "Yes" : "No";
+
+          if (isPro && data.proExpiryTimestamp) {
+            const expiryDate = data.proExpiryTimestamp.toDate
+              ? data.proExpiryTimestamp.toDate()
+              : new Date(data.proExpiryTimestamp);
+            document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+          } else {
+            document.getElementById("proExpiryDate").innerText = "-";
+          }
+
+          // Load Pro Account Settings from settings/proAccount
+          const proSettingsDocRef = doc(db, "settings", "proAccount");
+          const proSettingsDocSnap = await getDoc(proSettingsDocRef);
+          if (proSettingsDocSnap.exists()) {
+            const proData = proSettingsDocSnap.data();
+            document.getElementById("proActivationCost").innerText = proData.activationCost ?? "-";
+            document.getElementById("proDailyBonus").innerText = proData.dailyBonus ?? "-";
+            document.getElementById("proValidity").innerText = proData.validity ?? "-";
+          } else {
+            document.getElementById("proActivationCost").innerText = "-";
+            document.getElementById("proDailyBonus").innerText = "-";
+            document.getElementById("proValidity").innerText = "-";
+          }
         }
       } catch (err) {
         alert("Failed to load user data: " + err.message);
