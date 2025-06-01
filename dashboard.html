@@ -34,7 +34,7 @@
           <li>Daily Bonus: ৳<span id="proDailyBonus">...</span></li>
           <li>Validity: <span id="proValidity">...</span> days</li>
         </ul>
-        <button onclick="activateProAccount()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded w-full transition">
+        <button id="activateProBtn" onclick="activateProAccount()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded w-full transition">
           Activate Pro Account
         </button>
       </div>
@@ -151,11 +151,19 @@
 
           const isPro = data.isPro === true;
           document.getElementById("isProStatus").innerText = isPro ? "Yes" : "No";
-          if (isPro && data.proExpiryTimestamp) {
-            const expiryDate = data.proExpiryTimestamp.toDate
-              ? data.proExpiryTimestamp.toDate()
-              : new Date(data.proExpiryTimestamp);
-            document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+          const proBtn = document.getElementById("activateProBtn");
+
+          if (isPro) {
+            if (data.proExpiryTimestamp) {
+              const expiryDate = data.proExpiryTimestamp.toDate
+                ? data.proExpiryTimestamp.toDate()
+                : new Date(data.proExpiryTimestamp);
+              document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
+            }
+            proBtn.innerText = "Already Activated";
+            proBtn.disabled = true;
+            proBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+            proBtn.classList.remove("bg-purple-600", "hover:bg-purple-700");
           } else {
             document.getElementById("proExpiryDate").innerText = "-";
           }
@@ -178,6 +186,8 @@
 
     async function activateProAccount() {
       if (!currentUserData || !proSettings.activationCost || !proSettings.validity) return alert("User or settings not loaded.");
+
+      if (currentUserData.isPro) return; // Already active (redundant safety)
 
       const cost = proSettings.activationCost;
       const validity = proSettings.validity;
