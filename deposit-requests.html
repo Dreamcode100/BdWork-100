@@ -17,19 +17,18 @@
     <div class="bg-white shadow rounded p-4">
       <div class="text-xl font-semibold text-blue-700 mb-2">Deposit Requests</div>
       <div class="overflow-x-auto max-h-[600px]">
-        <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[800px]">
+        <table class="w-full text-sm border border-gray-300 rounded overflow-hidden min-w-[600px]">
           <thead class="bg-gray-100 sticky top-0 z-10">
             <tr>
               <th class="p-3 border border-gray-300 text-left">User Email</th>
               <th class="p-3 border border-gray-300 text-left">Amount (৳)</th>
               <th class="p-3 border border-gray-300 text-left">Method</th>
-              <th class="p-3 border border-gray-300 text-left">Date/Time</th>
               <th class="p-3 border border-gray-300 text-center">Status</th>
               <th class="p-3 border border-gray-300 text-center">Actions</th>
             </tr>
           </thead>
           <tbody id="depositRequestsTableBody">
-            <tr><td colspan="6" class="p-4 text-center">Loading...</td></tr>
+            <tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -40,16 +39,17 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getAuth,
-      onAuthStateChanged
+      onAuthStateChanged,
+      signOut,
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
       getFirestore,
       collection,
       getDocs,
       doc,
-      getDoc,
       updateDoc,
-      increment
+      getDoc,
+      increment,
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -75,71 +75,35 @@
       }
     });
 
-    function formatDateTime(timestamp) {
-      if (!timestamp || !timestamp.seconds) return "N/A";
-      const date = new Date(timestamp.seconds * 1000);
-      return date.toLocaleString(); // Local readable format
-    }
-
     async function loadDepositRequests() {
       try {
-        const depositsSnapshot = await getDocs(collection(db, "deposits"));
+        const depositsCol = collection(db, "deposits");
+        const depositsSnapshot = await getDocs(depositsCol);
 
         if (depositsSnapshot.empty) {
-          depositsTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">No pending deposits</td></tr>`;
+          depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No pending deposits</td></tr>`;
           return;
         }
 
-        let deposits = [];
-        for (const docSnap of depositsSnapshot.docs) {
-          const data = docSnap.data();
-          deposits.push({ id: docSnap.id, ...data });
-        }
-
-        // Sort by createdAt descending
-        deposits.sort((a, b) => {
-          const aTime = a.createdAt?.seconds || 0;
-          const bTime = b.createdAt?.seconds || 0;
-          return bTime - aTime;
-        });
-
         let rowsHtml = "";
-
-        for (const deposit of deposits) {
-          const depositId = deposit.id;
-          const userId = deposit.userId || "";
-          const amount = deposit.amount || 0;
-          const method = deposit.method || "N/A";
-          const status = deposit.status || "pending";
-          const createdAt = formatDateTime(deposit.createdAt);
-
-          let userEmail = "N/A";
-          try {
-            const userDoc = await getDoc(doc(db, "users", userId));
-            if (userDoc.exists()) {
-              userEmail = userDoc.data().email || "N/A";
-            }
-          } catch {
-            console.warn("User fetch failed");
-          }
+        for (const docSnap of depositsSnapshot.docs) {
+          const deposit = docSnap.data();
+          const depositId = docSnap.id;
+          const userDoc = await getDoc(doc(db, "users", deposit.userId));
+          const userEmail = userDoc.exists() ? userDoc.data().email : "N/A";
 
           rowsHtml += `
             <tr class="hover:bg-gray-50 border-t">
               <td class="p-3 border border-gray-300">${userEmail}</td>
-              <td class="p-3 border border-gray-300">${amount}</td>
-              <td class="p-3 border border-gray-300">${method}</td>
-              <td class="p-3 border border-gray-300">${createdAt}</td>
+              <td class="p-3 border border-gray-300">${deposit.amount}</td>
+              <td class="p-3 border border-gray-300">${deposit.method}</td>
               <td class="p-3 border border-gray-300 text-center">
-                ${status === "pending"
-                  ? "<span class='text-yellow-500'>Pending</span>"
-                  : status === "approved"
-                  ? "<span class='text-green-500'>Approved</span>"
-                  : "<span class='text-red-500'>Rejected</span>"}
+                ${deposit.status === "pending" ? "<span class='text-yellow-500'>Pending</span>" : deposit.status === "approved" ? "<span class='text-green-500'>Approved</span>" : "<span class='text-red-500'>Rejected</span>"}
               </td>
               <td class="p-3 border border-gray-300 text-center">
-                ${status === "pending" ? `
-                  <button onclick="updateDepositStatus('${depositId}', '${userId}', ${amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded">Approve</button>
-                  <button onclick="updateDepositStatus('${depositId}', '${userId}', ${amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded ml-2">Reject</button>
+                ${deposit.status === "pending" ? `
+                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'approved')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition">Approve</button>
+                  <button onclick="updateDepositStatus('${depositId}', '${deposit.userId}', ${deposit.amount}, 'rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition ml-2">Reject</button>
                 ` : "N/A"}
               </td>
             </tr>
@@ -148,8 +112,8 @@
 
         depositsTableBody.innerHTML = rowsHtml;
       } catch (error) {
-        console.error("Error loading deposits:", error);
-        depositsTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-600">Error loading deposits</td></tr>`;
+        console.error("Error loading deposit requests:", error);
+        depositsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Error loading deposit requests</td></tr>`;
       }
     }
 
@@ -163,13 +127,15 @@
 
         if (status === "approved") {
           const userRef = doc(db, "users", userId);
-          await updateDoc(userRef, { balance: increment(amount) });
+          await updateDoc(userRef, {
+            balance: increment(amount)
+          });
         }
 
         alert(`Deposit ${status} successfully.`);
         loadDepositRequests();
       } catch (error) {
-        console.error("Error updating status:", error);
+        console.error("Error updating deposit status:", error);
         alert("Failed to update deposit status.");
       }
     };
