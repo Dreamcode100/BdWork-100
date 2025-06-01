@@ -21,6 +21,11 @@
         <p class="text-sm text-gray-500 mt-6 mb-1">Balance</p>
         <p id="userBalance" class="text-xl font-bold text-green-600">৳0</p>
       </div>
+      
+      <!-- Account Status Section -->
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <p id="accountStatus" class="text-lg font-semibold text-center text-gray-700"></p>
+      </div>
 
       <!-- Pro Account Section -->
       <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-between">
@@ -185,6 +190,18 @@
             document.getElementById("proExpiryDate").innerText = "-";
           }
 
+          // Set account status text
+          const accountStatusElem = document.getElementById("accountStatus");
+          if (isPro) {
+            accountStatusElem.innerText = "Pro Account";
+            accountStatusElem.classList.remove("text-gray-700");
+            accountStatusElem.classList.add("text-blue-700", "font-bold");
+          } else {
+            accountStatusElem.innerText = "Regular Account";
+            accountStatusElem.classList.remove("text-blue-700", "font-bold");
+            accountStatusElem.classList.add("text-gray-700");
+          }
+
           // Disable button if already Pro
           const activateBtn = document.getElementById("activateProBtn");
           if (isPro) {
@@ -239,6 +256,12 @@
         document.getElementById("isProStatus").innerText = "Yes";
         document.getElementById("proExpiryDate").innerText = expiryDate.toLocaleDateString();
         document.getElementById("userBalance").innerText = `৳${currentUserData.balance}`;
+
+        // Update account status text on activation
+        const accountStatusElem = document.getElementById("accountStatus");
+        accountStatusElem.innerText = "Pro Account";
+        accountStatusElem.classList.remove("text-gray-700");
+        accountStatusElem.classList.add("text-blue-700", "font-bold");
 
         // Disable button & change text
         const activateBtn = document.getElementById("activateProBtn");
