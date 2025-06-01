@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -28,6 +28,7 @@
       </div>
     </section>
 
+    <!-- Refer Section -->
     <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
       <p class="text-sm text-gray-500 mb-1">Total Refers</p>
       <p id="totalRefers" class="text-xl font-semibold text-gray-800">0</p>
@@ -49,52 +50,28 @@
       </a>
     </section>
 
-    <!-- Pro Account Section Button -->
+    <!-- Pro Account Section -->
     <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
       <a href="pro-account.html" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
         Go to Pro Account Page →
       </a>
-    </section>
-
-    <!-- Withdraw Section -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
-      <h2 class="text-xl font-semibold mb-4">💸 Withdraw Balance</h2>
-      <div class="flex flex-col gap-4">
-        <select id="withdrawMethod" class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <option value="">Select Method</option>
-          <option value="BKash">BKash</option>
-          <option value="Nagad">Nagad</option>
-          <option value="USDT">USDT</option>
-        </select>
-
-        <input
-          id="withdrawAmount"
-          type="number"
-          min="1"
-          placeholder="Enter amount"
-          class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        />
-
-        <input
-          id="withdrawAddress"
-          type="text"
-          placeholder="Enter Number / Wallet Address"
-          class="border border-gray-300 rounded-md px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        />
-
-        <button onclick="withdraw()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-full transition">
-          Withdraw
-        </button>
-      </div>
     </section>
 
-    <!-- Withdraw History Redirect -->
+    <!-- Withdraw Redirect -->
+    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
+      <h2 class="text-xl font-semibold mb-4">💸 Withdraw Balance</h2>
+      <a href="withdraw.html" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition">
+        Go to Withdraw Page →
+      </a>
+    </section>
+
+    <!-- Withdraw History -->
     <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 mb-8">
       <h2 class="text-xl font-semibold mb-4">📜 Withdraw History</h2>
       <a href="withdraw-history.html" class="text-blue-600 hover:underline text-center block">View Withdraw History →</a>
     </section>
 
-    <!-- Logout -->
+    <!-- Logout Button -->
     <div class="text-center">
       <button onclick="logout()" class="bg-red-600 text-white px-5 py-2 rounded-md hover:bg-red-700 transition text-lg">
         <i class="fas fa-sign-out-alt mr-2"></i> Logout
@@ -102,7 +79,7 @@
     </div>
   </main>
 
-  <!-- JavaScript: Firebase + Dashboard Logic -->
+  <!-- Firebase & Dashboard Logic -->
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyCkYWvYNsg2-CR88Js6gcP2nXfvwI4TW30",
@@ -123,6 +100,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
     let currentUserData = null;
 
     onAuthStateChanged(auth, async (user) => {
@@ -139,24 +117,18 @@
           document.getElementById("userBalance").innerText = `৳${data.balance || 0}`;
           document.getElementById("userReferCode").value = user.uid;
 
-          // Show total refers count
           const referQuery = query(collection(db, "users"), where("referredBy", "==", user.uid));
           const referSnapshot = await getDocs(referQuery);
           document.getElementById("totalRefers").innerText = referSnapshot.size;
 
-          // Account status text: Check if Pro Account active
-          if (data.proActive === true) {
-            document.getElementById("accountStatus").innerText = "Pro Account";
-          } else {
-            document.getElementById("accountStatus").innerText = "Regular Account";
-          }
+          document.getElementById("accountStatus").innerText =
+            data.proActive === true ? "Pro Account" : "Regular Account";
         }
       } catch (err) {
         alert("Failed to load user data: " + err.message);
       }
     });
 
-    // Copy refer code
     window.copyReferCode = () => {
       const input = document.getElementById("userReferCode");
       input.select();
@@ -165,12 +137,6 @@
       alert("Refer code copied to clipboard!");
     };
 
-    // Withdraw function placeholder
-    window.withdraw = () => {
-      alert("Withdraw function not implemented in this demo.");
-    };
-
-    // Logout
     window.logout = () => {
       signOut(auth).then(() => {
         window.location.href = "login.html";
